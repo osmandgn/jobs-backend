@@ -1,0 +1,548 @@
+{
+  "project": {
+    "name": "GigHub UK - Backend",
+    "description": "UK-based short-term job matching platform - Backend API",
+    "version": "1.0.0-MVP",
+    "tech_stack": {
+      "runtime": "Node.js v20 LTS",
+      "framework": "Express.js",
+      "language": "TypeScript",
+      "orm": "Prisma",
+      "database": "PostgreSQL",
+      "cache": "Redis",
+      "authentication": "JWT + Refresh Token",
+      "file_storage": "AWS S3",
+      "push_notifications": "Firebase Cloud Messaging",
+      "email_service": "SendGrid",
+      "sms_service": "Twilio (phone verification)",
+      "geocoding": "postcodes.io API (UK postcodes)"
+    },
+    "created_at": "2024-01-01",
+    "last_updated": "2025-11-27"
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "title": "Project Initialization & Base Configuration",
+      "status": "completed",
+      "description": "Node.js + Express + TypeScript projesi oluşturulacak. Folder structure: src/(config, controllers, middlewares, routes, services, utils, validators, types). ESLint, Prettier, tsconfig.json, nodemon yapılandırması. Environment variables (.env) yapısı: DATABASE_URL, REDIS_URL, JWT_SECRET, JWT_REFRESH_SECRET, AWS_ACCESS_KEY, AWS_SECRET_KEY, S3_BUCKET, FIREBASE_PROJECT_ID, SENDGRID_API_KEY, TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, POSTCODES_IO_URL. package.json scripts (dev, build, start, lint, test, seed). Error handling base class ve global error handler middleware. Logger utility (winston veya pino) with log levels (debug, info, warn, error). CORS configuration (allowed origins for web/mobile). Security middlewares: helmet (security headers), express-rate-limit (configurable per route), hpp (HTTP parameter pollution), xss-clean. Base response format utility. Request ID middleware for tracing.",
+      "completion_summary": "Express + TypeScript projesi oluşturuldu. Tüm klasör yapısı kuruldu (config, controllers, middlewares, routes, services, utils, validators, types). ESLint, Prettier, tsconfig.json yapılandırıldı. Docker + docker-compose hazırlandı. Helmet, CORS, hpp, rate-limiting middleware'leri eklendi. Winston logger, AppError class, response utilities, requestId middleware oluşturuldu. Health check endpoint eklendi.",
+      "expected_outputs": [
+        "src/app.ts - Express application setup with all middlewares",
+        "src/server.ts - Server entry point with graceful shutdown",
+        "src/config/index.ts - Environment config with validation",
+        "src/config/database.ts - DB connection config",
+        "src/config/redis.ts - Redis connection config",
+        "src/middlewares/errorHandler.ts - Global error handler",
+        "src/middlewares/rateLimiter.ts - Rate limiting with Redis store",
+        "src/middlewares/requestId.ts - Request ID for tracing",
+        "src/utils/logger.ts - Winston/Pino logging utility",
+        "src/utils/response.ts - Standardized API responses",
+        "src/utils/AppError.ts - Custom error class with status codes",
+        "src/types/index.ts - Global type definitions",
+        "src/types/express.d.ts - Express request augmentation",
+        ".env.example - Environment variables template",
+        ".eslintrc.js - ESLint configuration",
+        ".prettierrc - Prettier configuration",
+        "tsconfig.json - TypeScript configuration"
+      ]
+    },
+    {
+      "id": "T02",
+      "title": "Database Schema Design & Prisma Setup",
+      "status": "completed",
+      "description": "PostgreSQL bağlantısı ve Prisma ORM kurulumu. Tüm database tabloları tasarlanacak: users (id UUID, email unique, password_hash, first_name, last_name, phone, phone_verified, profile_photo_url, bio, location_city, location_postcode, location_lat float, location_lng float, notification_radius_miles int default 10, is_job_seeker bool, is_employer bool, is_actively_looking bool default false, allow_messages bool default true, show_phone bool default false, email_verified bool, status enum[active,suspended,banned,deleted], role enum[user,admin], created_at, updated_at), categories (id, name, slug unique, icon, description, parent_id nullable FK, is_active, sort_order), skills (id, name, slug, category_id FK), user_skills (user_id FK, skill_id FK, PK composite), user_categories (user_id FK, category_id FK, created_at, PK composite), user_experience (id, user_id FK, title, company, description, start_date, end_date nullable, is_current bool), user_portfolio (id, user_id FK, title, description, image_url, created_at), saved_jobs (user_id FK, job_id FK, created_at, PK composite), jobs (id UUID, user_id FK, category_id FK, title, description text, location_address, location_postcode, location_city, location_lat float, location_lng float, job_date date, start_time time, end_time time nullable, pay_amount decimal, pay_type enum[hourly,fixed], experience_level enum[entry,intermediate,expert], status enum[draft,pending_review,active,paused,filled,completed,expired,rejected], views_count int default 0, applications_count int default 0, created_at, updated_at, expires_at, admin_notes nullable), job_images (id, job_id FK, image_url, sort_order, created_at), job_required_skills (job_id FK, skill_id FK, PK composite), applications (id UUID, job_id FK, applicant_id FK, message text, status enum[pending,accepted,rejected,withdrawn], employer_read bool default false, created_at, updated_at), conversations (id UUID, job_id FK, employer_id FK, applicant_id FK, last_message_at, is_employer_deleted bool, is_applicant_deleted bool, created_at), messages (id UUID, conversation_id FK, sender_id FK, content text, is_read bool, created_at), reviews (id UUID, job_id FK, reviewer_id FK, reviewee_id FK, rating int 1-5, punctuality_rating int nullable, quality_rating int nullable, communication_rating int nullable, comment text nullable, review_type enum[employer_to_worker,worker_to_employer], created_at), reports (id UUID, reporter_id FK, reported_user_id FK nullable, reported_job_id FK nullable, reason enum[spam,fraud,harassment,inappropriate,fake_listing,misleading,other], description text nullable, evidence_urls jsonb, status enum[pending,investigating,resolved,dismissed], admin_notes text nullable, admin_id FK nullable, resolved_at nullable, created_at), notifications (id UUID, user_id FK, type enum[new_job_match,application_received,application_accepted,application_rejected,new_message,new_review,job_reminder,system], title, body, data jsonb, is_read bool, related_job_id nullable, related_user_id nullable, created_at), notification_preferences (user_id FK PK, new_job_push bool default true, new_job_email bool default true, new_job_email_frequency enum[instant,daily,weekly] default daily, application_push bool default true, application_email bool default true, message_push bool default true, review_push bool default true, review_email bool default true, marketing_email bool default false), device_tokens (id, user_id FK, token unique, platform enum[ios,android,web], device_name nullable, last_used_at, created_at), blocked_users (blocker_id FK, blocked_id FK, reason nullable, created_at, PK composite), refresh_tokens (id UUID, user_id FK, token_hash, expires_at, revoked bool default false, revoked_at nullable, created_at), verification_codes (id, user_id FK, code, type enum[email,phone,password_reset], expires_at, used bool, created_at), system_settings (key PK, value text, description, updated_at, updated_by nullable), admin_logs (id UUID, admin_id FK, action, target_type enum[user,job,report,setting], target_id, details jsonb, ip_address, created_at). İndeksler: users(email), users(location_lat, location_lng), users(is_actively_looking, status), jobs(status, job_date), jobs(location_lat, location_lng), jobs(category_id, status), jobs(user_id), applications(job_id, status), applications(applicant_id), messages(conversation_id, created_at), notifications(user_id, is_read). Foreign key cascade rules. Seed data: 16 ana kategori, 50+ alt kategori, 100+ skill.",
+      "completion_summary": "Prisma schema oluşturuldu: 22 model (User, Category, Skill, Job, Application, Conversation, Message, Review, Report, Notification vb.), 12 enum, tüm ilişkiler ve index'ler tanımlandı. Seed dosyası hazırlandı: 16 ana kategori, 64 alt kategori, 90+ skill, 12 sistem ayarı, admin user. src/types/enums.ts oluşturuldu.",
+      "expected_outputs": [
+        "prisma/schema.prisma - Complete database schema with all relations",
+        "prisma/migrations/ - Initial migration files",
+        "prisma/seed.ts - Seed data for categories, skills, system_settings, admin user",
+        "src/config/database.ts - Prisma client singleton instance",
+        "src/types/enums.ts - TypeScript enums matching Prisma enums"
+      ]
+    },
+    {
+      "id": "T03",
+      "title": "Redis Configuration & Caching Service",
+      "status": "completed",
+      "description": "Redis bağlantı konfigürasyonu (ioredis). Cache service oluşturulacak: get<T>(key), set(key, value, ttl?), del(key), exists(key), setWithExpiry(key, value, seconds), getOrSet<T>(key, fetchFn, ttl) - cache-aside pattern, invalidatePattern(pattern) - wildcard delete, increment(key), decrement(key), setHash/getHash for complex objects, expire(key, seconds). Token blacklist için: addToBlacklist(token, expiresIn), isBlacklisted(token). Rate limiting için Redis store configuration. Cache key naming convention: prefix:entity:id (e.g., user:profile:123, job:detail:456, categories:all). TTL stratejisi: categories 1 hour, user profile 5 min, job list 1 min, job detail 2 min, settings 30 min. Connection retry ve error handling. Health check for Redis connection.",
+      "completion_summary": "Redis client ioredis ile yapılandırıldı. CacheService oluşturuldu: get, set, del, exists, getOrSet, invalidatePattern, increment, decrement, setHash, getHash, addToBlacklist, isBlacklisted, incrementViewCount metodları. cacheKeys.ts ile key naming convention, cacheTTL.ts ile TTL sabitleri tanımlandı. Rate limiter Redis store entegrasyonu yapıldı.",
+      "expected_outputs": [
+        "src/config/redis.ts - Redis client configuration with retry logic",
+        "src/services/cache.service.ts - All caching operations",
+        "src/utils/cacheKeys.ts - Cache key constants and generator functions",
+        "src/utils/cacheTTL.ts - TTL constants for different entities"
+      ]
+    },
+    {
+      "id": "T04",
+      "title": "Authentication - Registration, Email & Phone Verification",
+      "status": "completed",
+      "description": "User registration servisi: email format validation (UK-compatible), password strength validation (min 8 chars, 1 uppercase, 1 number), password hashing (bcrypt with salt rounds 12), email uniqueness check, create user with email_verified=false, generate 6-digit verification code, store in verification_codes table (expires 15 min), send verification email. Email verification: validate code, mark email_verified=true, delete used code. Resend verification: rate limit 3 per hour, generate new code. Phone verification (Twilio): validate UK phone format (+44), generate 6-digit SMS code, store in verification_codes, send via Twilio, verify code and mark phone_verified=true. Email service (SendGrid): HTML email templates (verification, password reset, welcome, job application received, application status, new message, review received, daily digest), template variables, send email async via queue. Email templates stored in src/templates/emails/ as .hbs (Handlebars) files. Endpoints: POST /api/auth/register {email, password, firstName, lastName}, POST /api/auth/verify-email {code}, POST /api/auth/resend-verification, POST /api/auth/send-phone-code {phone}, POST /api/auth/verify-phone {code}. Input validation with Zod. Rate limiting: register 5/hour per IP, verify 10/hour, resend 3/hour.",
+      "completion_summary": "AuthService oluşturuldu: register, verifyEmail, resendVerification, sendPhoneVerification, verifyPhone, forgotPassword, resetPassword, changePassword metodları. EmailService (SendGrid): sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail, sendApplicationReceivedEmail, sendApplicationStatusEmail, sendNewReviewEmail. SMSService (Twilio): sendVerificationCode. VerificationService: 6-digit code generation, verification logic. Zod validator şemaları, UK phone validation utility, rate limiter'lar eklendi.",
+      "expected_outputs": [
+        "src/services/auth.service.ts - Registration and verification logic",
+        "src/services/email.service.ts - SendGrid email sending with queue",
+        "src/services/sms.service.ts - Twilio SMS sending",
+        "src/services/verification.service.ts - Code generation and validation",
+        "src/controllers/auth.controller.ts - Auth endpoints",
+        "src/routes/auth.routes.ts - Auth route definitions",
+        "src/validators/auth.validator.ts - Zod validation schemas",
+        "src/templates/emails/verification.hbs",
+        "src/templates/emails/welcome.hbs",
+        "src/templates/emails/password-reset.hbs",
+        "src/templates/emails/application-received.hbs",
+        "src/templates/emails/application-status.hbs",
+        "src/templates/emails/new-message.hbs",
+        "src/templates/emails/new-review.hbs",
+        "src/templates/emails/daily-digest.hbs",
+        "src/utils/phoneValidator.ts - UK phone number validation"
+      ]
+    },
+    {
+      "id": "T05",
+      "title": "Authentication - Login, JWT & Token Management",
+      "status": "completed",
+      "description": "Login servisi: email/password validation, find user by email, compare password hash, check email_verified (return error if not), check user status (not suspended/banned), generate JWT access token (15min expiry, payload: userId, email, role), generate refresh token (7 days expiry, random UUID), hash refresh token and store in DB, return both tokens. Token refresh: extract refresh token from body/cookie, hash and find in DB, check not expired and not revoked, generate new access token, optionally rotate refresh token (generate new, revoke old). Logout: get refresh token, mark as revoked in DB, add access token to Redis blacklist (with remaining TTL). Logout all devices: revoke all user's refresh tokens. Auth middleware: extract Bearer token from Authorization header, verify JWT signature, check token not in blacklist, get user from DB (cache), attach user to req.user. Optional auth middleware: same but doesn't fail if no token. Role middleware: check req.user.role against required roles. Endpoints: POST /api/auth/login {email, password}, POST /api/auth/refresh {refreshToken}, POST /api/auth/logout, POST /api/auth/logout-all. JWT secret rotation support.",
+      "completion_summary": "TokenService oluşturuldu: generateTokens, refreshAccessToken, revokeToken, revokeAllUserTokens, blacklistAccessToken, isAccessTokenBlacklisted, cleanupExpiredTokens. JWT utilities: generateAccessToken, generateRefreshToken, verifyAccessToken, verifyRefreshToken, decodeToken, getTokenExpiry, getTokenRemainingTime. Auth middleware'ler: authMiddleware, optionalAuthMiddleware, requireRole/requireAdmin. AuthController: login, refresh, logout, logoutAll, me endpoint'leri. Auth routes tanımlandı ve app.ts'e eklendi.",
+      "expected_outputs": [
+        "src/services/auth.service.ts - Extended with login, refresh, logout",
+        "src/services/token.service.ts - JWT generation, verification, blacklist",
+        "src/middlewares/auth.middleware.ts - JWT authentication",
+        "src/middlewares/optionalAuth.middleware.ts - Optional authentication",
+        "src/middlewares/role.middleware.ts - Role-based authorization",
+        "src/utils/jwt.ts - JWT helper functions"
+      ]
+    },
+    {
+      "id": "T06",
+      "title": "Authentication - Password Reset & Social Auth",
+      "status": "completed",
+      "description": "Password reset flow: POST /forgot-password receives email, find user, generate reset code (6 digit, 1 hour expiry), store in verification_codes, send reset email with code. POST /reset-password receives {code, newPassword}, validate code, validate password strength, hash new password, update user, revoke all refresh tokens, delete code, send confirmation email. Change password (authenticated): validate current password, validate new password different, update, revoke other sessions optionally. Apple Sign In: receive identityToken from iOS, verify with Apple's public keys (fetch from https://appleid.apple.com/auth/keys), extract user info (sub, email), find or create user (match by email or apple_sub), generate tokens. Google Sign In: receive idToken, verify with Google (google-auth-library), extract user info, find or create user. Social auth user creation: set random secure password, mark email_verified=true (trusted from provider), store provider_id for future logins. Link social account to existing user. Endpoints: POST /api/auth/forgot-password {email}, POST /api/auth/reset-password {code, newPassword}, POST /api/auth/change-password {currentPassword, newPassword} (auth required), POST /api/auth/apple {identityToken, firstName?, lastName?}, POST /api/auth/google {idToken}. Rate limiting: forgot-password 3/hour per email.",
+      "completion_summary": "Password reset akışı T04-T05'te zaten uygulanmıştı. Apple Sign In servisi oluşturuldu: jose kütüphanesi ile Apple public keys üzerinden JWT doğrulama, kullanıcı oluşturma/bağlama. Google Sign In servisi oluşturuldu: google-auth-library ile token doğrulama. Her iki servis de mevcut kullanıcı varsa bağlama, yoksa yeni kullanıcı oluşturma özelliğine sahip. AuthController'a appleAuth ve googleAuth endpoint'leri eklendi. Prisma schema'da appleId ve googleId alanları zaten tanımlıydı. Config'e APPLE_BUNDLE_ID ve GOOGLE_CLIENT_ID eklendi.",
+      "expected_outputs": [
+        "src/services/auth.service.ts - Extended with password reset, social auth",
+        "src/services/apple-auth.service.ts - Apple token verification",
+        "src/services/google-auth.service.ts - Google token verification",
+        "src/controllers/auth.controller.ts - Extended with new endpoints",
+        "src/validators/auth.validator.ts - Extended validation schemas"
+      ]
+    },
+    {
+      "id": "T07",
+      "title": "User Profile Service - CRUD & Settings",
+      "status": "completed",
+      "description": "Get current user profile: return full user data with computed fields (completeness percentage, total jobs posted, total applications, average rating, total reviews, member since). Profile completeness calculation: has photo (20%), has bio (15%), has phone verified (15%), has location (20%), has skills (15%), has categories (15%). Update profile: validate and update allowed fields (firstName, lastName, phone, bio, location fields), if location_postcode changes -> geocode to get lat/lng. Get public profile: filter fields based on target user's privacy settings and viewer relationship, include public stats, include reviews summary. Update privacy settings: allowMessages, showPhone. Toggle actively looking: update is_actively_looking, if turning ON trigger check for matching jobs to notify later. Delete account (GDPR): soft delete (status=deleted, anonymize PII) or hard delete based on request, cascade to related data, revoke all tokens, send confirmation email. Update notification radius: set notification_radius_miles (1-50). Endpoints: GET /api/users/me, PUT /api/users/me, GET /api/users/:id (public), PUT /api/users/me/settings, PATCH /api/users/me/actively-looking {isActivelyLooking}, DELETE /api/users/me, PATCH /api/users/me/notification-radius {radiusMiles}. Cache user profile with 5min TTL, invalidate on update.",
+      "completion_summary": "UserService oluşturuldu: getProfile (profile completeness hesaplama, stats), updateProfile (geocoding ile), updateSettings, toggleActivelyLooking, updateNotificationRadius, getPublicProfile (blocked user kontrolü), deleteAccount (soft/hard). UserController ve user.routes.ts oluşturuldu. UK postcode geocoding postcodes.io API ile entegre edildi. Redis cache kullanılıyor. Tüm endpoint'ler test edildi.",
+      "expected_outputs": [
+        "src/services/user.service.ts - User CRUD operations with stats",
+        "src/services/profile.service.ts - Profile completeness, public profile",
+        "src/controllers/user.controller.ts - User endpoints",
+        "src/routes/user.routes.ts - User route definitions",
+        "src/validators/user.validator.ts - User input validation",
+        "src/utils/profileCompleteness.ts - Completeness calculation"
+      ]
+    },
+    {
+      "id": "T08",
+      "title": "User Profile - Skills, Categories, Experience, Portfolio & Saved Jobs",
+      "status": "completed",
+      "description": "Skills management: get user's skills (with category info), update skills (receive skill IDs array, validate max 30 skills, replace all user_skills), get available skills for selection (grouped by category). Category subscription (for job notifications): get user's subscribed categories, update subscriptions (receive category IDs, validate max 10 categories, replace user_categories). Experience management: list user's experiences (ordered by start_date desc), add experience (title, company, description, start_date, end_date, is_current), update experience (only own), delete experience. Portfolio management: list portfolio items, add item (title, description, image upload), delete item, max 10 items. Saved/Favorite jobs: save job (add to saved_jobs), unsave job (remove), get saved jobs (paginated, with job details, exclude expired), check if job is saved (for UI toggle). Endpoints: GET /api/users/me/skills, PUT /api/users/me/skills {skillIds[]}, GET /api/users/me/categories, PUT /api/users/me/categories {categoryIds[]}, GET /api/users/me/experience, POST /api/users/me/experience, PUT /api/users/me/experience/:id, DELETE /api/users/me/experience/:id, GET /api/users/me/portfolio, POST /api/users/me/portfolio (multipart), DELETE /api/users/me/portfolio/:id, POST /api/jobs/:id/save, DELETE /api/jobs/:id/save, GET /api/users/me/saved-jobs.",
+      "completion_summary": "ProfileService oluşturuldu: Skills (getUserSkills, addSkills, setSkills, removeSkill), Categories (getUserCategories, addCategories, setCategories, removeCategory), Experience (getUserExperiences, createExperience, updateExperience, deleteExperience), Portfolio (getUserPortfolio, createPortfolioItem, updatePortfolioItem, deletePortfolioItem). ProfileController ve profile.routes.ts oluşturuldu. Zod validation şemaları eklendi. Tüm endpoint'ler test edildi ve çalışıyor. Saved jobs T11'de (Job Listing) implemente edilecek.",
+      "expected_outputs": [
+        "src/services/user.service.ts - Extended with skills, categories, experience, portfolio",
+        "src/services/savedJob.service.ts - Save/unsave job operations",
+        "src/controllers/user.controller.ts - Extended endpoints",
+        "src/routes/user.routes.ts - Extended routes",
+        "src/validators/user.validator.ts - Extended validation schemas"
+      ]
+    },
+    {
+      "id": "T09",
+      "title": "File Upload Service - S3 & Image Processing",
+      "status": "completed",
+      "description": "AWS S3 configuration: bucket name, region, credentials, base URL. Presigned URL generation for direct client upload: generate PUT presigned URL with content-type and size restrictions, set expiry (15 min), return URL and final file key. File key structure: {type}/{userId}/{timestamp}-{random}.{ext} (e.g., profiles/123/1704067200-abc123.jpg). Profile photo upload: validate jpeg/png, max 5MB, after upload trigger resize job (thumbnail 100x100, medium 300x300, large 600x600), store all URLs in user record. Job images: max 5 per job, validate jpeg/png, max 10MB each, resize to standard size (800x600), store in job_images table with sort_order. Portfolio images: validate jpeg/png, max 10MB, resize to max 1200px width. Delete file from S3 (cleanup old files). Image processing with Sharp library: resize, optimize quality (80%), convert to webp optionally. Multer middleware for direct uploads (fallback). Endpoints: POST /api/uploads/presigned-url {type: 'profile'|'job'|'portfolio', contentType, fileName}, POST /api/uploads/confirm {key, type, targetId?} (confirm upload and trigger processing), DELETE /api/uploads/:key. Cleanup job for orphaned uploads (files not confirmed within 1 hour).",
+      "completion_summary": "UploadService oluşturuldu (@aws-sdk/client-s3, @aws-sdk/s3-request-presigner): uploadFile, uploadProfilePhoto, uploadPortfolioImage, uploadJobImage, deleteFile, deleteFileByUrl, getPresignedUploadUrl, getPresignedDownloadUrl, fileExists. UploadController: uploadProfilePhoto (direct), deleteProfilePhoto, uploadPortfolioImage, getPresignedUrl, confirmProfilePhotoUpload, confirmPortfolioUpload. upload.routes.ts ile multer middleware entegre edildi. Dosya tipi (jpeg, png, webp) ve boyut validasyonu yapılıyor. Presigned URL endpoint test edildi ve çalışıyor. Direct upload AWS credentials olmadığı için test ortamında başarısız oluyor (expected).",
+      "expected_outputs": [
+        "src/config/s3.ts - AWS S3 client configuration",
+        "src/services/upload.service.ts - Presigned URL, confirm, delete",
+        "src/services/image.service.ts - Image processing with Sharp",
+        "src/controllers/upload.controller.ts - Upload endpoints",
+        "src/routes/upload.routes.ts - Upload route definitions",
+        "src/middlewares/upload.middleware.ts - Multer fallback configuration",
+        "src/jobs/imageProcessing.job.ts - Background image resize job",
+        "src/jobs/uploadCleanup.job.ts - Orphaned upload cleanup"
+      ]
+    },
+    {
+      "id": "T10",
+      "title": "Categories & Skills Service",
+      "status": "completed",
+      "description": "Categories servisi: get all active categories with subcategories (nested tree structure, sorted by sort_order), get category by id or slug (with parent and children), cache categories tree (1 hour TTL), get popular categories (based on job count). Category response includes: id, name, slug, icon, description, parentId, jobCount (active jobs), childCategories[]. Skills servisi: get all skills, get skills by category ID (for filtering), get skills by IDs (for validation), cache skills (1 hour TTL). Admin category management: create category (validate unique slug, auto-generate if not provided), update category (name, icon, description, is_active, sort_order, parent_id), delete category (only if no jobs, or soft delete), reorder categories (update sort_order in batch). Admin skill management: create skill (name, category_id), update skill, delete skill (only if not used, or reassign). Cache invalidation on any category/skill change. Endpoints: GET /api/categories (tree structure), GET /api/categories/:idOrSlug, GET /api/categories/popular, GET /api/skills, GET /api/skills?categoryId=X, GET /api/admin/categories, POST /api/admin/categories, PUT /api/admin/categories/:id, DELETE /api/admin/categories/:id, PUT /api/admin/categories/reorder, GET /api/admin/skills, POST /api/admin/skills, PUT /api/admin/skills/:id, DELETE /api/admin/skills/:id.",
+      "completion_summary": "CategoryService ve SkillService oluşturuldu: tree yapısı, CRUD operations, Redis caching (1 saat TTL). Public endpoint'ler: categories (tree, flat, popular, by id/slug), skills (list, grouped by category, by category id). Admin endpoint'ler: category ve skill CRUD (create, update, delete, reorder). Slugify utility, Zod validators, cache invalidation implementasyonu tamamlandı. Tüm endpoint'ler manuel test edildi.",
+      "expected_outputs": [
+        "src/services/category.service.ts - Category tree, CRUD operations",
+        "src/services/skill.service.ts - Skill operations",
+        "src/controllers/category.controller.ts - Public category endpoints",
+        "src/controllers/skill.controller.ts - Public skill endpoints",
+        "src/controllers/admin/category.controller.ts - Admin category endpoints",
+        "src/controllers/admin/skill.controller.ts - Admin skill endpoints",
+        "src/routes/category.routes.ts - Category routes",
+        "src/routes/skill.routes.ts - Skill routes",
+        "src/utils/slugify.ts - Slug generation utility"
+      ]
+    },
+    {
+      "id": "T11",
+      "title": "Job Listing Service - CRUD Operations",
+      "status": "completed",
+      "description": "Job creation: validate all required fields (title 5-100 chars, description 20-5000 chars, valid category, valid UK postcode, job_date in future, pay_amount > 0, pay_type), geocode postcode to lat/lng, set initial status (check system_settings.job_requires_approval -> pending_review or active), calculate expires_at (job_date + 1 day or system_settings.job_expiry_days), associate required_skills if provided, return created job with ID. Job update: only owner can update, only if status in [draft, active, paused, pending_review], update allowed fields, if postcode changed re-geocode, if was active and major change consider re-review. Job deletion: only owner or admin, soft delete (status=deleted), keep for 30 days then hard delete. Get job detail: include employer info (public profile), images (ordered), required skills, application count, is_saved (if authenticated), distance (if location provided), increment views_count (debounce, don't count owner views). Get user's own jobs: filter by status, include application_count per job, paginated, sorted by created_at desc. Job status management: pause (active->paused), resume (paused->active), mark filled (active->filled, reject pending applications), mark completed (filled->completed, enable reviews), cancel (any->cancelled). Auto-expire: job_date passed -> expired. Endpoints: POST /api/jobs, GET /api/jobs/:id, PUT /api/jobs/:id, DELETE /api/jobs/:id, GET /api/jobs/mine, PATCH /api/jobs/:id/status {status}. Job views tracking with Redis (debounce 1 hour per user per job).",
+      "completion_summary": "JobService oluşturuldu: createJob (UK postcode geocoding, skill validation, system settings check), updateJob (ownership check, status validation, re-geocoding), deleteJob (soft delete), getJobById (with employer stats, caching, view tracking), getMyJobs (paginated, filtered), updateJobStatus (transition validation, auto-reject pending applications on fill), saveJob/unsaveJob, getSavedJobs. JobController ile tüm endpoint'ler: POST /jobs, GET /jobs/:id, PUT /jobs/:id, DELETE /jobs/:id, GET /jobs/mine, PATCH /jobs/:id/status, POST /jobs/:id/save, DELETE /jobs/:id/save, GET /users/me/saved-jobs. Redis view debouncing (1 saat), cache invalidation implementasyonu. Tüm CRUD operasyonları manuel test edildi.",
+      "expected_outputs": [
+        "src/services/job.service.ts - Job CRUD with all business logic",
+        "src/controllers/job.controller.ts - Job endpoints",
+        "src/routes/job.routes.ts - Job route definitions",
+        "src/validators/job.validator.ts - Comprehensive job validation",
+        "src/middlewares/jobOwner.middleware.ts - Job ownership verification",
+        "src/utils/jobStatus.ts - Status transition validation"
+      ]
+    },
+    {
+      "id": "T12",
+      "title": "Job Search, Filtering & UK Location Services",
+      "status": "completed",
+      "description": "Job listing with comprehensive filters: Pagination (page, limit max 50, default 20). Sort options: newest (created_at desc), nearest (distance asc, requires location), highest_pay (pay_amount desc), ending_soon (job_date asc). Filters: categoryId or categorySlug (include subcategories), subcategoryId, postcode (center point for distance), city, radiusMiles (1-50, default 10), minPay, maxPay, payType (hourly/fixed), dateFrom, dateTo, experienceLevel, keyword (search in title and description, PostgreSQL full-text or ILIKE), skills[] (job must require any of these). Only return active jobs with job_date >= today. Response: jobs[], total, page, totalPages, appliedFilters. Nearby jobs endpoint: requires lat/lng or postcode, uses Haversine formula for distance calculation, returns jobs sorted by distance, include distance in each job. UK Postcode service (postcodes.io): validate UK postcode format, lookup postcode -> {latitude, longitude, city, region, country}, bulk lookup for multiple postcodes. Reverse geocode lat/lng to postcode. Cache postcode lookups (24 hour TTL). Location search: search by city/town name, autocomplete for postcode input. PostgreSQL distance calculation: use earthdistance extension or Haversine formula in query. Index optimization for geo queries. Endpoints: GET /api/jobs (with all query params), GET /api/jobs/nearby?lat=X&lng=Y or ?postcode=X, GET /api/locations/validate-postcode/:postcode, GET /api/locations/lookup-postcode/:postcode, GET /api/locations/search?q=term.",
+      "completion_summary": "distance.ts: Haversine formula, getBoundingBox, formatDistance, isWithinRadius. location.service.ts: postcodes.io entegrasyonu (validate, lookup, bulk lookup, reverse geocode, autocomplete, search places), Redis caching. job.service.ts: searchJobs (pagination, sort, filters: category, location, pay, date, keyword, skills), getNearbyJobs (postcode veya koordinat ile). job.validator.ts: jobSearchQuerySchema, nearbyJobsQuerySchema. location.controller.ts ve location.routes.ts oluşturuldu. Tüm endpoint'ler manuel test edildi.",
+      "expected_outputs": [
+        "src/services/job.service.ts - Extended with search and filter",
+        "src/services/location.service.ts - UK postcode/geocoding with postcodes.io",
+        "src/controllers/job.controller.ts - Extended search endpoints",
+        "src/controllers/location.controller.ts - Location endpoints",
+        "src/routes/location.routes.ts - Location routes",
+        "src/utils/pagination.ts - Pagination helper with metadata",
+        "src/utils/filters.ts - Filter query builder for Prisma",
+        "src/utils/distance.ts - Haversine formula implementation",
+        "src/validators/job.validator.ts - Extended with search params"
+      ]
+    },
+    {
+      "id": "T13",
+      "title": "Application Service",
+      "status": "completed",
+      "description": "Apply to job: validate job exists and status=active, check job_date not passed, check not own job, check not already applied, check not blocked by employer, create application with message (50-500 chars), set status=pending, create conversation for messaging, trigger notification to employer (push + email based on preferences), increment job.applications_count. Get my applications (job seeker view): paginated, filter by status, include job details (title, location, pay, date, employer name/photo), include conversation_id for messaging, sorted by created_at desc. Get job applications (employer view): only job owner can access, paginated, include applicant summary (name, photo, rating, skills, bio preview), mark as read (employer_read=true), filter by status. Update application status (employer): only job owner, only if current status=pending, set to accepted or rejected, trigger notification to applicant, if accepted -> update job status to filled if setting enabled. Withdraw application (applicant): only own application, only if status=pending, set status=withdrawn. Application statuses flow: pending -> accepted/rejected/withdrawn. Endpoints: POST /api/jobs/:id/apply {message}, GET /api/applications (my applications), GET /api/applications/:id, GET /api/jobs/:id/applications, PATCH /api/applications/:id {status: 'accepted'|'rejected'}, DELETE /api/applications/:id (withdraw). Rate limit: 10 applications per hour per user.",
+      "completion_summary": "ApplicationService oluşturuldu: applyToJob (job validation, blocked user check, conversation creation, applicationsCount increment), getMyApplications (paginated, filter by status, conversationId), getJobApplications (employer view, applicant ratings), getApplicationById, updateApplicationStatus (accept/reject, auto-fill job, reject other pending), withdrawApplication. ApplicationController ile tüm endpoint'ler: POST /jobs/:id/apply, GET /applications, GET /applications/:id, GET /jobs/:id/applications, PATCH /applications/:id, DELETE /applications/:id. application.validator.ts ile Zod validation. Rate limiting (applicationLimiter) uygulandı. Tüm endpoint'ler manuel test edildi.",
+      "expected_outputs": [
+        "src/services/application.service.ts - All application operations",
+        "src/controllers/application.controller.ts - Application endpoints",
+        "src/routes/application.routes.ts - Application routes",
+        "src/validators/application.validator.ts - Application validation",
+        "src/middlewares/applicationAccess.middleware.ts - Access control"
+      ]
+    },
+    {
+      "id": "T14",
+      "title": "Messaging Service",
+      "status": "completed",
+      "description": "Conversation auto-creation: created when application submitted, links job_id, employer_id, applicant_id. Get user's conversations: list all conversations where user is participant and not deleted, include last message preview (content truncated, timestamp, sender), include other party info (name, photo), include job info (title, status), include unread count, sorted by last_message_at desc, paginated. Get conversation detail: validate user is participant, return conversation with job and other party info. Get messages: validate user is participant, paginated (oldest first for chat UI, newest first for initial load), include sender info. Send message: validate participant, validate other party allows messages (unless application was accepted), validate not blocked, create message, update conversation.last_message_at, trigger notification to recipient (push + email if offline). Mark as read: mark all messages in conversation as read where sender != current user, update unread counts. Delete conversation (soft): set is_employer_deleted or is_applicant_deleted, don't show in list, but keep messages. Unread count: GET total unread messages for badge. Block check: if blocked, return error on send. Endpoints: GET /api/conversations, GET /api/conversations/:id, GET /api/conversations/:id/messages?page=X&limit=Y, POST /api/conversations/:id/messages {content}, PATCH /api/conversations/:id/read, DELETE /api/conversations/:id, GET /api/messages/unread-count. Message content: max 2000 chars, basic sanitization (no HTML).",
+      "completion_summary": "ConversationService oluşturuldu: getUserConversations (paginated, unread count, last message preview), getConversationById, validateConversationAccess, deleteConversation (soft delete), getTotalUnreadCount, findConversation. MessageService oluşturuldu: getMessages, sendMessage (blocked user check, allowMessages check, HTML sanitization), markConversationAsRead, deleteMessage. MessageController ile tüm endpoint'ler: GET /conversations, GET /conversations/:id, GET /conversations/:id/messages, POST /conversations/:id/messages, PATCH /conversations/:id/read, DELETE /conversations/:id, DELETE /conversations/:id/messages/:messageId, GET /messages/unread-count. Zod validators oluşturuldu. Tüm endpoint'ler manuel test edildi.",
+      "expected_outputs": [
+        "src/services/conversation.service.ts - Conversation operations",
+        "src/services/message.service.ts - Message operations",
+        "src/controllers/message.controller.ts - Unified message endpoints",
+        "src/routes/message.routes.ts - Message routes",
+        "src/validators/message.validator.ts - Message validation",
+        "src/middlewares/conversationAccess.middleware.ts - Access validation"
+      ]
+    },
+    {
+      "id": "T15",
+      "title": "Review & Rating Service",
+      "status": "completed",
+      "description": "Review eligibility: job status must be 'completed', user must be participant (employer or accepted applicant), check not already reviewed this direction (employer->worker or worker->employer), within review window (system_settings.review_window_days, default 14). Create review: rating 1-5 required, sub-ratings optional (punctuality 1-5, quality 1-5, communication 1-5), comment optional (if provided: min 20, max 1000 chars, profanity filter), set review_type based on reviewer role, trigger notification to reviewee (push + email). Get user's reviews (public): paginated, include reviewer basic info (name, photo), include job title, sorted by created_at desc, calculate summary stats. Review stats: average overall rating (1 decimal), total reviews count, rating breakdown (count per star), average sub-ratings if available. Stats cached (5 min TTL), invalidated on new review. Pending reviews: jobs where current user participated, job completed, not yet reviewed by current user, within review window. Profanity filter: check against word list, reject or censor. Report review: flag for admin review (inappropriate content). Endpoints: POST /api/reviews {jobId, rating, punctualityRating?, qualityRating?, communicationRating?, comment?}, GET /api/users/:id/reviews, GET /api/users/:id/review-stats, GET /api/reviews/pending, POST /api/reviews/:id/report. Can only submit one review per job per direction.",
+      "completion_summary": "ReviewService oluşturuldu: checkReviewEligibility (job status, participant check, review window, duplicate check), createReview (profanity filter, cache invalidation), getUserReviews (paginated), getUserReviewStats (cached, rating breakdown, sub-ratings), getPendingReviews (employer/worker jobs), reportReview. ReviewController ile tüm endpoint'ler: POST /reviews, GET /reviews/pending, GET /reviews/:id, POST /reviews/:id/report, GET /users/:id/reviews, GET /users/:id/review-stats. profanityFilter.ts utility oluşturuldu. Zod validators eklendi. Tüm endpoint'ler manuel test edildi.",
+      "expected_outputs": [
+        "src/services/review.service.ts - Review operations with eligibility",
+        "src/controllers/review.controller.ts - Review endpoints",
+        "src/routes/review.routes.ts - Review routes",
+        "src/validators/review.validator.ts - Review validation",
+        "src/utils/profanityFilter.ts - Profanity word list and check",
+        "src/utils/reviewStats.ts - Stats calculation helper"
+      ]
+    },
+    {
+      "id": "T16",
+      "title": "Reporting & Blocking Service",
+      "status": "completed",
+      "description": "Report user: select reason (spam, fraud, harassment, inappropriate, other), optional description (max 1000 chars), optional evidence URLs (max 5 image URLs), create report record with status=pending, notify admin (via admin notification or email). Report job: similar to user report, reasons (fake_listing, misleading, inappropriate, spam, other), link to reported_job_id. View my reports: list reports submitted by current user with status. Block user: add to blocked_users table, immediate effects: hide their jobs from blocker's search, prevent messaging (both directions), prevent applying to each other's jobs, prevent reviews. Unblock user: remove from blocked_users. Get blocked list: paginated list of blocked users with basic info and block date. Report statuses: pending (new), investigating (admin reviewing), resolved (action taken), dismissed (no action). Report effects: none until admin action. Admin notified of new reports via notification system. Duplicate report prevention: can't report same user/job within 24 hours. Endpoints: POST /api/reports {type: 'user'|'job', targetId, reason, description?, evidenceUrls?[]}, GET /api/reports/mine, POST /api/users/:id/block {reason?}, DELETE /api/users/:id/block, GET /api/users/blocked. Check blocked status on relevant operations (messaging, applications).",
+      "completion_summary": "ReportService oluşturuldu: createReport (user/job reporting, 24 saat duplicate kontrolü), getMyReports (paginated), getReportById. BlockService oluşturuldu: isBlocked, hasBlockRelation (bidirectional), blockUser, unblockUser, getBlockedUsers (paginated), getBlockedByList, getBlockedList, getExcludedUsers (her iki yöndeki bloklar). ReportController ile tüm endpoint'ler: POST /reports, GET /reports/mine, GET /reports/:id, POST /users/:id/block, DELETE /users/:id/block, GET /users/blocked, GET /users/:id/block-status. Zod validators (Zod 4 uyumlu) oluşturuldu. Routes tanımlandı ve app.ts'e eklendi.",
+      "expected_outputs": [
+        "src/services/report.service.ts - Report creation and queries",
+        "src/services/block.service.ts - Block/unblock and checks",
+        "src/controllers/report.controller.ts - Report endpoints",
+        "src/routes/report.routes.ts - Report routes",
+        "src/validators/report.validator.ts - Report validation",
+        "src/utils/blockCheck.ts - Helper to check block status"
+      ]
+    },
+    {
+      "id": "T17",
+      "title": "Push Notification Service - Firebase Integration",
+      "status": "completed",
+      "description": "Firebase Admin SDK setup: initialize with service account credentials, configure for FCM. Device token management: register token (userId, token, platform ios/android/web, deviceName), validate token format, handle duplicate tokens (update user if different), update last_used_at on registration. Remove token on logout. Handle token refresh (old token -> new token). Notification sending service: send to single device (token), send to multiple devices (batch, max 500 per request), handle send failures (remove invalid tokens). Notification types enum: new_job_match, application_received, application_accepted, application_rejected, new_message, new_review, job_reminder, system. Payload builder per type: title, body, data (for deep linking: type, jobId?, conversationId?, userId?), iOS-specific (sound, badge), Android-specific (channel_id, priority). Check notification preferences before sending: respect push toggles per type. Batch sending for efficiency. Failed token cleanup: on InvalidRegistration or NotRegistered error, delete token. Log all notifications sent (for debugging). Endpoints: POST /api/devices {token, platform, deviceName?}, DELETE /api/devices/:token, PUT /api/devices/:token (update/refresh). Internal functions used by other services to trigger notifications.",
+      "completion_summary": "Firebase Admin SDK config oluşturuldu (src/config/firebase.ts). Notification types ve payload interfaces tanımlandı (src/types/notification.ts). Türkçe lokalize notification payload builder oluşturuldu (src/utils/notificationPayload.ts). Device service implemente edildi: registerDevice, removeDevice, removeAllUserDevices, updateDeviceToken, getUserDevices, getDeviceTokensForUsers, removeInvalidTokens, touchDeviceToken, removeStaleTokens. PushNotification service implemente edildi: sendToDevice, sendToDevices, sendToUser, sendToUsers, sendAndSaveNotification (preferences kontrolü ile), getUserNotifications, markAsRead, markAllAsRead, getUnreadCount, deleteOldNotifications. Device controller ve notification controller oluşturuldu. Routes tanımlandı: /api/v1/devices, /api/v1/notifications. app.ts ve server.ts güncellendi.",
+      "expected_outputs": [
+        "src/config/firebase.ts - Firebase Admin SDK initialization",
+        "src/services/pushNotification.service.ts - FCM sending operations",
+        "src/services/device.service.ts - Device token CRUD",
+        "src/controllers/device.controller.ts - Device endpoints",
+        "src/routes/device.routes.ts - Device routes",
+        "src/utils/notificationPayload.ts - Payload builders per type",
+        "src/types/notification.ts - Notification types and payloads"
+      ]
+    },
+    {
+      "id": "T18",
+      "title": "Smart Notification Triggers & In-App Notifications",
+      "status": "completed",
+      "description": "Notification triggers integrated throughout the app: 1) New job match: when job created, find users where is_actively_looking=true AND subscribed to job's category AND within notification_radius_miles of job location AND status=active AND not blocked by employer, queue notifications (batch process), respect new_job_push and new_job_email preferences. 2) Application received: notify job owner on new application (push + email based on prefs). 3) Application status change: notify applicant when accepted/rejected. 4) New message: notify recipient (push only, unless offline for email). 5) New review: notify reviewee (push + email). 6) Job reminder: notify accepted applicant 24h before job_date. In-app notifications: store all notifications in notifications table, mark as read functionality, get notifications (paginated, filter read/unread, include related job/user preview), mark single as read, mark all as read, delete old notifications (>30 days). Notification preferences: get current preferences (per type, push/email toggles, email frequency for new jobs), update preferences. Email frequency options for new jobs: instant (send immediately), daily (digest at 9am), weekly (digest on Monday). Daily/weekly digest job: collect unread job matches, group by category, send single digest email. Endpoints: GET /api/notifications, PATCH /api/notifications/:id/read, PATCH /api/notifications/read-all, DELETE /api/notifications/:id, GET /api/notifications/unread-count, GET /api/users/me/notification-preferences, PUT /api/users/me/notification-preferences.",
+      "completion_summary": "NotificationPreferenceService: getPreferences, updatePreferences, shouldSendPush, shouldSendEmail, getUsersWithInstantJobEmails, getUsersWithDailyDigest, getUsersWithWeeklyDigest. JobMatcherService: findMatchingUsers (Haversine distance, category, actively looking), findMatchingJobs, getUnreadJobMatches, countRecentMatches. NotificationTriggerService: onJobCreated, onApplicationReceived, onApplicationAccepted, onApplicationRejected, onNewMessage, onNewReview, sendJobReminder, sendSystemNotification. NotificationController güncellendi: preferences endpoint'leri, deleteNotification. Background Jobs: jobReminder.job.ts (24h before reminder), notificationDigest.job.ts (daily/weekly digest). EmailService'e digest email metodları eklendi.",
+      "expected_outputs": [
+        "src/services/notification.service.ts - Full notification logic with triggers",
+        "src/services/notificationPreference.service.ts - Preference management",
+        "src/services/jobMatcher.service.ts - Match jobs to users for notifications",
+        "src/controllers/notification.controller.ts - Notification endpoints",
+        "src/routes/notification.routes.ts - Notification routes",
+        "src/jobs/jobMatchNotification.job.ts - Process job match notifications",
+        "src/jobs/notificationDigest.job.ts - Daily/weekly digest emails",
+        "src/jobs/jobReminder.job.ts - 24h before job reminder"
+      ]
+    },
+    {
+      "id": "T19",
+      "title": "Admin Service - Dashboard, Users & Jobs Management",
+      "status": "completed",
+      "description": "Admin authentication: check user.role === 'admin' in middleware, reject non-admins with 403. Dashboard statistics: total users (by status breakdown), new users (today, this week, this month), total jobs (by status breakdown), active jobs count, total applications, pending reports count, recent activity feed. User management: list users (paginated, search by name/email, filter by status/role/is_job_seeker/is_employer, sort by created_at/name), get user full detail (profile + jobs + applications + reviews + reports about them), update user (status: active/suspended/banned, role: user/admin, notes), suspend user (set status, optional reason, optional duration, notify user), ban user (set status, reason, notify user, revoke tokens), delete user (hard delete with cascade). Job management: list jobs (paginated, search title, filter by status/category, sort), get job full detail (with applications, reports), update job status (approve pending, reject with reason, remove active), edit job (admin override), feature job (future). Bulk actions: approve multiple pending jobs, suspend multiple users. Admin action logging: log every action to admin_logs (admin_id, action, target_type, target_id, details JSON, ip_address). Endpoints: GET /api/admin/dashboard, GET /api/admin/users, GET /api/admin/users/:id, PATCH /api/admin/users/:id, DELETE /api/admin/users/:id, POST /api/admin/users/:id/suspend, POST /api/admin/users/:id/ban, GET /api/admin/jobs, GET /api/admin/jobs/:id, PATCH /api/admin/jobs/:id, POST /api/admin/jobs/:id/approve, POST /api/admin/jobs/:id/reject, GET /api/admin/logs.",
+      "completion_summary": "adminAuth.middleware.ts: requireAdmin, requireRole. adminLog.service.ts: logAction, getAdminLogs, getLogsForTarget, cleanupOldLogs. admin.service.ts: getDashboardStats, getRecentActivity, getUsers, getUserById, updateUser, suspendUser, banUser, unsuspendUser, deleteUser, getJobs, getJobById, updateJob, approveJob, rejectJob, deleteJob, bulkApproveJobs. dashboard.controller.ts, user.controller.ts, job.controller.ts, logs.controller.ts oluşturuldu. admin/index.ts routes agregator güncellendi. Tüm TypeScript hataları düzeltildi.",
+      "expected_outputs": [
+        "src/services/admin.service.ts - Admin operations",
+        "src/services/adminLog.service.ts - Action logging",
+        "src/controllers/admin/dashboard.controller.ts - Dashboard stats",
+        "src/controllers/admin/user.controller.ts - User management",
+        "src/controllers/admin/job.controller.ts - Job management",
+        "src/routes/admin/index.ts - Admin routes aggregator",
+        "src/middlewares/adminAuth.middleware.ts - Admin role check"
+      ]
+    },
+    {
+      "id": "T20",
+      "title": "Admin Service - Reports Management & System Settings",
+      "status": "completed",
+      "description": "Report management: list reports (paginated, filter by status/type/reason, sort by created_at), get report detail (full info: reporter profile, reported user/job, evidence, history), update report (status change, add admin_notes), take action on report (warn user - send warning email, suspend user, ban user, remove job, dismiss report), bulk resolve reports. Report workflow: pending -> investigating (admin opened) -> resolved/dismissed. Settings management: system_settings table with key-value pairs, get all settings (formatted), get single setting, update setting (validate value type, log change). Initial settings: job_requires_approval (bool, default false), max_images_per_job (int, default 5), review_window_days (int, default 14), job_expiry_days (int, default 7), min_password_length (int, default 8), max_applications_per_day (int, default 20), max_report_evidence (int, default 5), maintenance_mode (bool, default false), maintenance_message (string). Settings caching: cache all settings on startup and changes (30 min TTL), provide getSettings() helper used throughout app. Content management (future-ready): store/edit legal documents (terms, privacy, guidelines). Endpoints: GET /api/admin/reports, GET /api/admin/reports/:id, PATCH /api/admin/reports/:id, POST /api/admin/reports/:id/action {action, reason?}, GET /api/admin/settings, GET /api/admin/settings/:key, PUT /api/admin/settings/:key {value}.",
+      "completion_summary": "settings.service.ts: getAllSettings, getSetting, getSettingDetail, updateSetting, getSettings, isMaintenanceMode, getMaintenanceMessage, reloadSettings, initializeDefaultSettings. admin.service.ts: getReports, getReportById, updateReport, takeReportAction, bulkResolveReports. report.controller.ts: getReports, getReport, updateReport, takeAction, bulkResolve. settings.controller.ts: getAllSettings, getSetting, updateSetting, reloadSettings, initializeSettings, getMaintenanceStatus, toggleMaintenance. Admin routes güncellendi.",
+      "expected_outputs": [
+        "src/services/admin.service.ts - Extended with reports",
+        "src/services/settings.service.ts - System settings with cache",
+        "src/controllers/admin/report.controller.ts - Report management",
+        "src/controllers/admin/settings.controller.ts - Settings management",
+        "src/utils/settings.ts - getSettings() helper",
+        "prisma/seed.ts - Extended with default settings"
+      ]
+    },
+    {
+      "id": "T21",
+      "title": "Legal Content & GDPR Compliance",
+      "status": "completed",
+      "description": "Legal documents: Terms of Service, Privacy Policy (GDPR compliant), Community Guidelines, Safety Tips. Store as markdown or HTML in files or DB, versioning (track version and effective date), get by type. Required disclosures on job listings: platform disclaimer, payment disclaimer, age requirement, right to work reminder. GDPR data export (Article 15): user requests export, queue job, collect all user data (profile, jobs, applications, messages sent, reviews given/received, saved jobs), generate JSON file, upload to S3 with expiring URL (24h), email download link, log request. Data retention: auto-delete unverified accounts after 30 days, anonymize deleted accounts after 90 days, delete old messages after 1 year (configurable), delete old notifications after 30 days. Account deletion (Article 17): user requests deletion, confirm via email/password, immediate: revoke tokens, remove from search; after 30 days: anonymize or hard delete based on legal requirements, notify user of completion. Cookie consent: provide consent status endpoint (for web). Right to rectification: handled via profile update. Endpoints: GET /api/legal/:type (terms|privacy|guidelines|safety), GET /api/legal/:type/version, POST /api/users/me/data-export, POST /api/users/me/delete-request, GET /api/users/me/delete-status, POST /api/consent {type, granted}. Background jobs: processDataExport, cleanupUnverifiedAccounts, anonymizeDeletedAccounts, cleanupOldData.",
+      "completion_summary": "legal.service.ts: getDocument (caching ile), getDocumentVersion, getAllDocumentVersions, invalidateDocumentCache, getPlaceholderContent (terms, privacy, guidelines, safety, cookies için). gdpr.service.ts: exportUserData (tüm kullanıcı verileri JSON export), requestAccountDeletion (30 gün sonra silme planlaması), cancelAccountDeletion, getDeletionStatus, processPendingDeletions, deleteUserData (soft delete, PII anonymization), anonymizeInactiveAccounts, getUserConsent, updateUserConsent. legal.controller.ts ve gdpr.controller.ts. legal.routes.ts ve gdpr.routes.ts (app.ts'e eklendi). Prisma schema: UserStatus'a pending_deletion eklendi, DeletionRequestStatus enum, AccountDeletionRequest model, User'a GDPR consent alanları (marketingConsent, analyticsConsent, thirdPartyConsent, consentUpdatedAt, lastLoginAt, deletedAt). cleanup.job.ts: cleanupExpiredCodes, cleanupExpiredTokens, cleanupUnverifiedAccounts, expireOldJobs, cleanupOldNotifications, cleanupOldAdminLogs, cleanupInactiveDeviceTokens, processAccountDeletions, flagInactiveAccounts, runDailyCleanup, runWeeklyCleanup, runMonthlyCleanup.",
+      "expected_outputs": [
+        "src/services/legal.service.ts - Legal document serving",
+        "src/services/gdpr.service.ts - Data export and deletion",
+        "src/controllers/legal.controller.ts - Legal endpoints",
+        "src/routes/legal.routes.ts - Legal routes",
+        "src/jobs/dataExport.job.ts - Process data export",
+        "src/jobs/accountCleanup.job.ts - Cleanup unverified/deleted",
+        "src/jobs/dataRetention.job.ts - Old data cleanup",
+        "src/content/terms.md - Terms of Service",
+        "src/content/privacy.md - Privacy Policy",
+        "src/content/guidelines.md - Community Guidelines",
+        "src/content/safety.md - Safety Tips"
+      ]
+    },
+    {
+      "id": "T22",
+      "title": "Background Jobs & Scheduled Tasks",
+      "status": "not_started",
+      "description": "Job queue setup with Bull (Redis-backed): create queues for different job types, configure concurrency, retry logic (3 retries with exponential backoff), dead letter queue for failed jobs. Queue types: notifications (high priority), emails (normal), images (normal), cleanup (low priority), exports (low priority). Scheduled tasks (cron): Job expiry check (every hour: find active jobs where job_date < now, set status=expired). Daily digest (9:00 AM UK time: collect users with daily email preference, gather unread job matches, send digest email). Weekly digest (Monday 9:00 AM). Token cleanup (daily 3:00 AM: delete expired refresh_tokens, clear old Redis blacklist entries). Notification cleanup (weekly: delete read notifications older than 30 days). Data retention (weekly: run retention policies). Job reminders (hourly: find jobs with job_date tomorrow, send reminder to accepted applicants). Upload cleanup (hourly: delete unconfirmed uploads older than 1 hour). Background workers: notification worker (process push sends), email worker (process email sends), image worker (process resizes). Job monitoring: Bull Board UI for admin (/admin/queues), job success/failure metrics. Graceful shutdown: wait for active jobs to complete. Error alerting: notify admin on repeated failures.",
+      "completion_summary": "",
+      "expected_outputs": [
+        "src/config/queue.ts - Bull queue configuration",
+        "src/queues/index.ts - Queue definitions",
+        "src/queues/notification.queue.ts - Notification queue",
+        "src/queues/email.queue.ts - Email queue",
+        "src/queues/image.queue.ts - Image processing queue",
+        "src/workers/notification.worker.ts - Push processor",
+        "src/workers/email.worker.ts - Email processor",
+        "src/workers/image.worker.ts - Image processor",
+        "src/jobs/scheduler.ts - Cron job scheduler",
+        "src/jobs/jobExpiry.job.ts - Expire old jobs",
+        "src/jobs/digest.job.ts - Email digests",
+        "src/jobs/cleanup.job.ts - Various cleanups",
+        "src/jobs/reminder.job.ts - Job reminders",
+        "src/utils/bullBoard.ts - Admin queue UI"
+      ]
+    },
+    {
+      "id": "T23",
+      "title": "API Documentation & Input Validation",
+      "status": "not_started",
+      "description": "OpenAPI 3.0 / Swagger documentation: document all endpoints with descriptions, request body schemas, query parameter schemas, response schemas (success and error), authentication requirements, example requests and responses. Swagger UI available at /api/docs (disabled in production or behind admin auth). Auto-generate types from OpenAPI schema. Input validation with Zod: create schemas for all request bodies, query params, route params; validate in middleware; return detailed error messages with field paths; infer TypeScript types from Zod schemas. Response standardization: success format {success: true, data: T, message?: string}, error format {success: false, error: {code: string, message: string, details?: any}}, pagination format {success: true, data: T[], pagination: {page, limit, total, totalPages, hasMore}}. API versioning: URL prefix /api/v1, prepare for future versions. Error codes: define error code enum (AUTH_001, JOB_001, etc.) with messages. Health check: GET /api/health returns {status: 'ok', version, uptime, database: 'connected', redis: 'connected'}. Rate limit headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset.",
+      "completion_summary": "",
+      "expected_outputs": [
+        "src/docs/swagger.ts - Swagger/OpenAPI configuration",
+        "src/docs/schemas/ - OpenAPI schema files per module",
+        "src/docs/examples/ - Request/response examples",
+        "src/validators/*.validator.ts - All Zod schemas",
+        "src/middlewares/validate.ts - Validation middleware",
+        "src/utils/response.ts - Response helpers",
+        "src/utils/errors.ts - Error codes and messages",
+        "src/routes/health.routes.ts - Health check endpoint",
+        "src/types/api.ts - API response types"
+      ]
+    },
+    {
+      "id": "T24",
+      "title": "Testing Suite",
+      "status": "not_started",
+      "description": "Test framework: Jest with TypeScript support, Supertest for HTTP testing. Test database: separate PostgreSQL database for tests, run migrations before tests, seed with test data, truncate between test suites. Test structure: unit tests (services, utilities, validators), integration tests (API endpoints end-to-end), test files co-located or in __tests__ folder. Mocking: mock external services (S3, Firebase, SendGrid, Twilio, postcodes.io) with Jest mocks, create mock factories. Test utilities: createTestUser(), createTestJob(), authenticateAs(), resetDatabase(). Unit tests coverage: all service methods, utility functions, validators, middleware logic. Integration tests coverage: auth flow (register, verify, login, refresh, logout), user profile CRUD, job CRUD and search, application flow, messaging flow, review flow, admin operations. Test data factories: generate realistic test data with Faker.js. Coverage reporting: Jest coverage with lcov, aim for 80%+ coverage, fail CI if below threshold. CI integration: run tests on every PR, block merge if tests fail. Performance tests (optional): load testing with k6 or artillery for critical endpoints.",
+      "completion_summary": "",
+      "expected_outputs": [
+        "jest.config.ts - Jest configuration",
+        "src/__tests__/setup.ts - Global test setup",
+        "src/__tests__/teardown.ts - Global test teardown",
+        "src/__tests__/utils/testHelpers.ts - Test utilities",
+        "src/__tests__/utils/mocks.ts - Service mocks",
+        "src/__tests__/factories/ - Test data factories",
+        "src/__tests__/unit/services/ - Service unit tests",
+        "src/__tests__/unit/utils/ - Utility unit tests",
+        "src/__tests__/integration/auth.test.ts",
+        "src/__tests__/integration/users.test.ts",
+        "src/__tests__/integration/jobs.test.ts",
+        "src/__tests__/integration/applications.test.ts",
+        "src/__tests__/integration/messages.test.ts",
+        "src/__tests__/integration/reviews.test.ts",
+        "src/__tests__/integration/admin.test.ts"
+      ]
+    },
+    {
+      "id": "T25",
+      "title": "Deployment, CI/CD & Production Infrastructure",
+      "status": "not_started",
+      "description": "Containerization: Dockerfile with multi-stage build (build stage, production stage), .dockerignore, docker-compose.yml for local development (app, postgres, redis). CI pipeline (GitHub Actions): on PR -> lint, type-check, run tests, check coverage; on merge to main -> build, run tests, deploy to staging. CD pipeline: manual approval for production deploy, run migrations, deploy, health check, rollback on failure. Hosting: Railway or Render configuration (railway.toml or render.yaml), auto-scaling setup, environment variables via platform secrets. Database: production PostgreSQL (Railway Postgres, Supabase, or AWS RDS), connection pooling (PgBouncer if needed), SSL required, automated daily backups. Redis: production Redis (Railway, Upstash, or AWS ElastiCache), SSL connection. Monitoring: Sentry for error tracking (source maps upload), application metrics (optional: DataDog, New Relic), uptime monitoring (Better Uptime, Pingdom). Logging: structured JSON logs, log aggregation (Railway logs, or Papertrail/Logtail). Security: environment-specific CORS origins, strict rate limits in production, security headers (helmet), HTTPS only, secrets management (never commit secrets). Domain & SSL: configure custom domain, SSL certificate (auto via platform or Let's Encrypt). Staging environment: separate staging deployment for QA. Database migrations: run automatically on deploy, migration rollback strategy. Backup strategy: database backups (automated by provider), S3 bucket versioning for uploads.",
+      "completion_summary": "",
+      "expected_outputs": [
+        "Dockerfile - Multi-stage production build",
+        ".dockerignore - Docker ignore file",
+        "docker-compose.yml - Local development setup",
+        "docker-compose.test.yml - Test environment",
+        ".github/workflows/ci.yml - CI pipeline",
+        ".github/workflows/deploy-staging.yml - Staging deployment",
+        ".github/workflows/deploy-production.yml - Production deployment",
+        "railway.toml - Railway configuration",
+        "render.yaml - Render configuration (alternative)",
+        "src/config/sentry.ts - Sentry initialization",
+        "scripts/migrate.sh - Migration script",
+        "scripts/seed-prod.sh - Production seed script",
+        "DEPLOYMENT.md - Deployment documentation",
+        "CONTRIBUTING.md - Development setup guide"
+      ]
+    }
+  ],
+  "summary": {
+    "total_tasks": 25,
+    "status_breakdown": {
+      "not_started": 4,
+      "in_progress": 0,
+      "completed": 21
+    },
+    "estimated_total_hours": 380,
+    "api_endpoints_count": 75,
+    "database_tables_count": 22,
+    "services_count": 28,
+    "main_services": [
+      "auth.service.ts - Registration, login, social auth, password reset",
+      "token.service.ts - JWT management, blacklist",
+      "verification.service.ts - Email/phone verification codes",
+      "email.service.ts - SendGrid email sending",
+      "sms.service.ts - Twilio SMS sending",
+      "user.service.ts - User CRUD, settings",
+      "profile.service.ts - Profile stats, completeness",
+      "upload.service.ts - S3 presigned URLs",
+      "image.service.ts - Image processing with Sharp",
+      "category.service.ts - Category tree operations",
+      "skill.service.ts - Skill operations",
+      "job.service.ts - Job CRUD, search, filters",
+      "jobMatcher.service.ts - Match jobs to users",
+      "location.service.ts - UK postcode/geocoding",
+      "savedJob.service.ts - Save/unsave jobs",
+      "application.service.ts - Application CRUD",
+      "conversation.service.ts - Conversation management",
+      "message.service.ts - Message sending",
+      "review.service.ts - Reviews and ratings",
+      "report.service.ts - User/job reporting",
+      "block.service.ts - User blocking",
+      "pushNotification.service.ts - FCM sending",
+      "notification.service.ts - In-app notifications",
+      "notificationPreference.service.ts - Notification settings",
+      "device.service.ts - Device token management",
+      "admin.service.ts - Admin operations",
+      "adminLog.service.ts - Admin action logging",
+      "settings.service.ts - System settings",
+      "legal.service.ts - Legal documents",
+      "gdpr.service.ts - Data export/deletion",
+      "cache.service.ts - Redis caching"
+    ],
+    "background_jobs": [
+      "Job expiry check (hourly)",
+      "Daily job digest email (9 AM)",
+      "Weekly job digest email (Monday)",
+      "Job reminder notifications (24h before)",
+      "Token cleanup (daily)",
+      "Notification cleanup (weekly)",
+      "Data retention cleanup (weekly)",
+      "Unverified account cleanup (daily)",
+      "Upload cleanup (hourly)",
+      "Data export processing",
+      "Image resize processing",
+      "Push notification sending",
+      "Email sending"
+    ],
+    "key_features_covered": [
+      "User registration with email/phone verification",
+      "Social authentication (Apple, Google)",
+      "JWT authentication with refresh tokens",
+      "User profiles with skills, experience, portfolio",
+      "Category subscriptions for notifications",
+      "Job listings with images and required skills",
+      "UK postcode-based location and geocoding",
+      "Distance-based job search",
+      "Comprehensive job filtering and search",
+      "Job applications with messaging",
+      "Conversation-based messaging system",
+      "Review and rating system with sub-ratings",
+      "User and job reporting system",
+      "User blocking functionality",
+      "Saved/favorite jobs",
+      "Smart push notifications based on preferences",
+      "Daily/weekly job digest emails",
+      "Actively looking status with smart matching",
+      "Admin dashboard with statistics",
+      "Admin user and job management",
+      "Admin report handling",
+      "Configurable system settings",
+      "GDPR compliance (data export, deletion)",
+      "Legal document serving",
+      "Background job processing",
+      "Comprehensive API documentation"
+    ]
+  }
+}

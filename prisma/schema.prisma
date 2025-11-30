@@ -1,0 +1,630 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== ENUMS ====================
+
+enum UserStatus {
+  active
+  suspended
+  banned
+  deleted
+  pending_deletion
+}
+
+enum DeletionRequestStatus {
+  pending
+  processing
+  completed
+  cancelled
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+enum JobStatus {
+  draft
+  pending_review
+  active
+  paused
+  filled
+  completed
+  expired
+  rejected
+}
+
+enum PayType {
+  hourly
+  fixed
+}
+
+enum ExperienceLevel {
+  entry
+  intermediate
+  expert
+}
+
+enum ApplicationStatus {
+  pending
+  accepted
+  rejected
+  withdrawn
+}
+
+enum ReviewType {
+  employer_to_worker
+  worker_to_employer
+}
+
+enum ReportReason {
+  spam
+  fraud
+  harassment
+  inappropriate
+  fake_listing
+  misleading
+  other
+}
+
+enum ReportStatus {
+  pending
+  investigating
+  resolved
+  dismissed
+}
+
+enum NotificationType {
+  new_job_match
+  application_received
+  application_accepted
+  application_rejected
+  new_message
+  new_review
+  job_reminder
+  system
+}
+
+enum DevicePlatform {
+  ios
+  android
+  web
+}
+
+enum VerificationType {
+  email
+  phone
+  password_reset
+}
+
+enum EmailFrequency {
+  instant
+  daily
+  weekly
+}
+
+// ==================== MODELS ====================
+
+model User {
+  id                    String     @id @default(uuid())
+  email                 String     @unique
+  passwordHash          String     @map("password_hash")
+  firstName             String     @map("first_name")
+  lastName              String     @map("last_name")
+  phone                 String?
+  phoneVerified         Boolean    @default(false) @map("phone_verified")
+  profilePhotoUrl       String?    @map("profile_photo_url")
+  bio                   String?
+  locationCity          String?    @map("location_city")
+  locationPostcode      String?    @map("location_postcode")
+  locationLat           Float?     @map("location_lat")
+  locationLng           Float?     @map("location_lng")
+  notificationRadiusMiles Int      @default(10) @map("notification_radius_miles")
+  isJobSeeker           Boolean    @default(false) @map("is_job_seeker")
+  isEmployer            Boolean    @default(false) @map("is_employer")
+  isActivelyLooking     Boolean    @default(false) @map("is_actively_looking")
+  allowMessages         Boolean    @default(true) @map("allow_messages")
+  showPhone             Boolean    @default(false) @map("show_phone")
+  emailVerified         Boolean    @default(false) @map("email_verified")
+  status                UserStatus @default(active)
+  role                  UserRole   @default(user)
+  appleId               String?    @unique @map("apple_id")
+  googleId              String?    @unique @map("google_id")
+  // GDPR Consent fields
+  marketingConsent      Boolean    @default(false) @map("marketing_consent")
+  analyticsConsent      Boolean    @default(true) @map("analytics_consent")
+  thirdPartyConsent     Boolean    @default(false) @map("third_party_consent")
+  consentUpdatedAt      DateTime?  @map("consent_updated_at")
+  lastLoginAt           DateTime?  @map("last_login_at")
+  deletedAt             DateTime?  @map("deleted_at")
+  createdAt             DateTime   @default(now()) @map("created_at")
+  updatedAt             DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  skills                UserSkill[]
+  categories            UserCategory[]
+  experiences           UserExperience[]
+  portfolioItems        UserPortfolio[]
+  savedJobs             SavedJob[]
+  postedJobs            Job[]              @relation("JobPoster")
+  applications          Application[]       @relation("JobApplicant")
+  sentMessages          Message[]           @relation("MessageSender")
+  reviewsGiven          Review[]            @relation("Reviewer")
+  reviewsReceived       Review[]            @relation("Reviewee")
+  reportsSubmitted      Report[]            @relation("Reporter")
+  reportsAgainst        Report[]            @relation("ReportedUser")
+  notifications         Notification[]
+  notificationPrefs     NotificationPreference?
+  deviceTokens          DeviceToken[]
+  blockedUsers          BlockedUser[]       @relation("Blocker")
+  blockedBy             BlockedUser[]       @relation("Blocked")
+  refreshTokens         RefreshToken[]
+  verificationCodes     VerificationCode[]
+  adminLogs             AdminLog[]          @relation("AdminLogger")
+  resolvedReports       Report[]            @relation("ReportAdmin")
+  conversationsAsEmployer Conversation[]    @relation("ConversationEmployer")
+  conversationsAsApplicant Conversation[]   @relation("ConversationApplicant")
+  deletionRequests      AccountDeletionRequest[]
+
+  @@index([email])
+  @@index([locationLat, locationLng])
+  @@index([isActivelyLooking, status])
+  @@index([status])
+  @@map("users")
+}
+
+model Category {
+  id           String     @id @default(uuid())
+  name         String
+  slug         String     @unique
+  icon         String?
+  description  String?
+  parentId     String?    @map("parent_id")
+  isActive     Boolean    @default(true) @map("is_active")
+  sortOrder    Int        @default(0) @map("sort_order")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  parent       Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children     Category[] @relation("CategoryHierarchy")
+  skills       Skill[]
+  userCategories UserCategory[]
+  jobs         Job[]
+
+  @@index([slug])
+  @@index([parentId])
+  @@index([isActive, sortOrder])
+  @@map("categories")
+}
+
+model Skill {
+  id           String     @id @default(uuid())
+  name         String
+  slug         String     @unique
+  categoryId   String     @map("category_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  category     Category   @relation(fields: [categoryId], references: [id])
+  userSkills   UserSkill[]
+  jobRequiredSkills JobRequiredSkill[]
+
+  @@index([categoryId])
+  @@index([slug])
+  @@map("skills")
+}
+
+model UserSkill {
+  userId    String   @map("user_id")
+  skillId   String   @map("skill_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill     Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+  @@map("user_skills")
+}
+
+model UserCategory {
+  userId     String   @map("user_id")
+  categoryId String   @map("category_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([userId, categoryId])
+  @@map("user_categories")
+}
+
+model UserExperience {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  title       String
+  company     String
+  description String?
+  startDate   DateTime  @map("start_date")
+  endDate     DateTime? @map("end_date")
+  isCurrent   Boolean   @default(false) @map("is_current")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_experiences")
+}
+
+model UserPortfolio {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  title       String
+  description String?
+  imageUrl    String   @map("image_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_portfolios")
+}
+
+model SavedJob {
+  userId    String   @map("user_id")
+  jobId     String   @map("job_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@id([userId, jobId])
+  @@map("saved_jobs")
+}
+
+model Job {
+  id                String          @id @default(uuid())
+  userId            String          @map("user_id")
+  categoryId        String          @map("category_id")
+  title             String
+  description       String
+  locationAddress   String?         @map("location_address")
+  locationPostcode  String          @map("location_postcode")
+  locationCity      String?         @map("location_city")
+  locationLat       Float           @map("location_lat")
+  locationLng       Float           @map("location_lng")
+  jobDate           DateTime        @map("job_date") @db.Date
+  startTime         String          @map("start_time")
+  endTime           String?         @map("end_time")
+  payAmount         Decimal         @map("pay_amount") @db.Decimal(10, 2)
+  payType           PayType         @map("pay_type")
+  experienceLevel   ExperienceLevel? @map("experience_level")
+  status            JobStatus       @default(draft)
+  viewsCount        Int             @default(0) @map("views_count")
+  applicationsCount Int             @default(0) @map("applications_count")
+  adminNotes        String?         @map("admin_notes")
+  expiresAt         DateTime?       @map("expires_at")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  updatedAt         DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  user              User            @relation("JobPoster", fields: [userId], references: [id])
+  category          Category        @relation(fields: [categoryId], references: [id])
+  images            JobImage[]
+  requiredSkills    JobRequiredSkill[]
+  applications      Application[]
+  savedBy           SavedJob[]
+  reviews           Review[]
+  reports           Report[]
+  notifications     Notification[]
+  conversations     Conversation[]
+
+  @@index([status, jobDate])
+  @@index([locationLat, locationLng])
+  @@index([categoryId, status])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("jobs")
+}
+
+model JobImage {
+  id        String   @id @default(uuid())
+  jobId     String   @map("job_id")
+  imageUrl  String   @map("image_url")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+  @@map("job_images")
+}
+
+model JobRequiredSkill {
+  jobId   String @map("job_id")
+  skillId String @map("skill_id")
+
+  // Relations
+  job     Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skill   Skill  @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([jobId, skillId])
+  @@map("job_required_skills")
+}
+
+model Application {
+  id           String            @id @default(uuid())
+  jobId        String            @map("job_id")
+  applicantId  String            @map("applicant_id")
+  message      String
+  status       ApplicationStatus @default(pending)
+  employerRead Boolean           @default(false) @map("employer_read")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  job          Job               @relation(fields: [jobId], references: [id])
+  applicant    User              @relation("JobApplicant", fields: [applicantId], references: [id])
+
+  @@unique([jobId, applicantId])
+  @@index([jobId, status])
+  @@index([applicantId])
+  @@map("applications")
+}
+
+model Conversation {
+  id                 String    @id @default(uuid())
+  jobId              String    @map("job_id")
+  employerId         String    @map("employer_id")
+  applicantId        String    @map("applicant_id")
+  lastMessageAt      DateTime? @map("last_message_at")
+  isEmployerDeleted  Boolean   @default(false) @map("is_employer_deleted")
+  isApplicantDeleted Boolean   @default(false) @map("is_applicant_deleted")
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  job                Job       @relation(fields: [jobId], references: [id])
+  employer           User      @relation("ConversationEmployer", fields: [employerId], references: [id])
+  applicant          User      @relation("ConversationApplicant", fields: [applicantId], references: [id])
+  messages           Message[]
+
+  @@unique([jobId, employerId, applicantId])
+  @@index([employerId])
+  @@index([applicantId])
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String       @map("conversation_id")
+  senderId       String       @map("sender_id")
+  content        String
+  isRead         Boolean      @default(false) @map("is_read")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("messages")
+}
+
+model Review {
+  id                  String     @id @default(uuid())
+  jobId               String     @map("job_id")
+  reviewerId          String     @map("reviewer_id")
+  revieweeId          String     @map("reviewee_id")
+  rating              Int
+  punctualityRating   Int?       @map("punctuality_rating")
+  qualityRating       Int?       @map("quality_rating")
+  communicationRating Int?       @map("communication_rating")
+  comment             String?
+  reviewType          ReviewType @map("review_type")
+  createdAt           DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  job                 Job        @relation(fields: [jobId], references: [id])
+  reviewer            User       @relation("Reviewer", fields: [reviewerId], references: [id])
+  reviewee            User       @relation("Reviewee", fields: [revieweeId], references: [id])
+
+  @@unique([jobId, reviewerId, revieweeId])
+  @@index([revieweeId])
+  @@index([createdAt])
+  @@map("reviews")
+}
+
+model Report {
+  id             String       @id @default(uuid())
+  reporterId     String       @map("reporter_id")
+  reportedUserId String?      @map("reported_user_id")
+  reportedJobId  String?      @map("reported_job_id")
+  reason         ReportReason
+  description    String?
+  evidenceUrls   Json?        @map("evidence_urls")
+  status         ReportStatus @default(pending)
+  adminNotes     String?      @map("admin_notes")
+  adminId        String?      @map("admin_id")
+  resolvedAt     DateTime?    @map("resolved_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  reporter       User         @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUser   User?        @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  reportedJob    Job?         @relation(fields: [reportedJobId], references: [id])
+  admin          User?        @relation("ReportAdmin", fields: [adminId], references: [id])
+
+  @@index([status])
+  @@index([reporterId])
+  @@index([reportedUserId])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+model Notification {
+  id            String           @id @default(uuid())
+  userId        String           @map("user_id")
+  type          NotificationType
+  title         String
+  body          String
+  data          Json?
+  isRead        Boolean          @default(false) @map("is_read")
+  relatedJobId  String?          @map("related_job_id")
+  relatedUserId String?          @map("related_user_id")
+  createdAt     DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  relatedJob    Job?             @relation(fields: [relatedJobId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  userId              String         @id @map("user_id")
+  newJobPush          Boolean        @default(true) @map("new_job_push")
+  newJobEmail         Boolean        @default(true) @map("new_job_email")
+  newJobEmailFrequency EmailFrequency @default(daily) @map("new_job_email_frequency")
+  applicationPush     Boolean        @default(true) @map("application_push")
+  applicationEmail    Boolean        @default(true) @map("application_email")
+  messagePush         Boolean        @default(true) @map("message_push")
+  reviewPush          Boolean        @default(true) @map("review_push")
+  reviewEmail         Boolean        @default(true) @map("review_email")
+  marketingEmail      Boolean        @default(false) @map("marketing_email")
+
+  // Relations
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model DeviceToken {
+  id         String         @id @default(uuid())
+  userId     String         @map("user_id")
+  token      String         @unique
+  platform   DevicePlatform
+  deviceName String?        @map("device_name")
+  lastUsedAt DateTime       @default(now()) @map("last_used_at")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  // Relations
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+model BlockedUser {
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  reason    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@map("blocked_users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  tokenHash String    @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  revoked   Boolean   @default(false)
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model VerificationCode {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  code      String
+  type      VerificationType
+  expiresAt DateTime         @map("expires_at")
+  used      Boolean          @default(false)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([code, type])
+  @@index([expiresAt])
+  @@map("verification_codes")
+}
+
+model SystemSetting {
+  key         String   @id
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  updatedBy   String?  @map("updated_by")
+
+  @@map("system_settings")
+}
+
+model AdminLog {
+  id         String   @id @default(uuid())
+  adminId    String   @map("admin_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  details    Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  admin      User     @relation("AdminLogger", fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("admin_logs")
+}
+
+model AccountDeletionRequest {
+  id           String                 @id @default(uuid())
+  userId       String                 @map("user_id")
+  reason       String?
+  scheduledFor DateTime               @map("scheduled_for")
+  status       DeletionRequestStatus  @default(pending)
+  completedAt  DateTime?              @map("completed_at")
+  createdAt    DateTime               @default(now()) @map("created_at")
+
+  // Relations
+  user         User                   @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status, scheduledFor])
+  @@map("account_deletion_requests")
+}
