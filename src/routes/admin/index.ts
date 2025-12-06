@@ -6,6 +6,7 @@ import adminSkillRoutes from './skill.routes';
 import { dashboardController } from '../../controllers/admin/dashboard.controller';
 import { adminUserController } from '../../controllers/admin/user.controller';
 import { adminJobController } from '../../controllers/admin/job.controller';
+import { adminApplicationController } from '../../controllers/admin/application.controller';
 import { adminLogsController } from '../../controllers/admin/logs.controller';
 import { adminReportController } from '../../controllers/admin/report.controller';
 import { adminSettingsController } from '../../controllers/admin/settings.controller';
@@ -19,6 +20,8 @@ router.use(requireAdmin);
 // Dashboard routes
 router.get('/dashboard', dashboardController.getDashboard.bind(dashboardController));
 router.get('/activity', dashboardController.getActivity.bind(dashboardController));
+router.get('/chart', dashboardController.getChartData.bind(dashboardController));
+router.get('/top-employers', dashboardController.getTopEmployers.bind(dashboardController));
 
 // User management routes
 router.get('/users', adminUserController.getUsers.bind(adminUserController));
@@ -37,6 +40,10 @@ router.post('/jobs/:id/approve', adminJobController.approveJob.bind(adminJobCont
 router.post('/jobs/:id/reject', adminJobController.rejectJob.bind(adminJobController));
 router.delete('/jobs/:id', adminJobController.deleteJob.bind(adminJobController));
 router.post('/jobs/bulk-approve', adminJobController.bulkApproveJobs.bind(adminJobController));
+
+// Application management routes
+router.get('/applications', adminApplicationController.getApplications.bind(adminApplicationController));
+router.get('/applications/:id', adminApplicationController.getApplication.bind(adminApplicationController));
 
 // Report management routes
 router.get('/reports', adminReportController.getReports.bind(adminReportController));

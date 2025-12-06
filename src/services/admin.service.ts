@@ -225,6 +225,100 @@ export async function getRecentActivity(limit: number = 20): Promise<RecentActiv
   return activities.slice(0, limit);
 }
 
+export async function getTopEmployers(limit: number = 5): Promise<Array<{
+  id: string;
+  name: string;
+  email: string;
+  profilePhotoUrl: string | null;
+  jobsCount: number;
+}>> {
+  const employers = await prisma.user.findMany({
+    where: {
+      isEmployer: true,
+      status: 'active',
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      profilePhotoUrl: true,
+      _count: {
+        select: {
+          postedJobs: true,
+        },
+      },
+    },
+    orderBy: {
+      postedJobs: {
+        _count: 'desc',
+      },
+    },
+    take: limit,
+  });
+
+  return employers.map((emp) => ({
+    id: emp.id,
+    name: `${emp.firstName} ${emp.lastName}`,
+    email: emp.email,
+    profilePhotoUrl: emp.profilePhotoUrl,
+    jobsCount: emp._count.postedJobs,
+  }));
+}
+
+export async function getChartData(days: number = 365): Promise<Array<{
+  date: string;
+  users: number;
+  jobs: number;
+  applications: number;
+}>> {
+  const now = new Date();
+  const result: Array<{ date: string; users: number; jobs: number; applications: number }> = [];
+
+  // Get monthly data for the last 12 months
+  for (let i = 11; i >= 0; i--) {
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59);
+    const monthName = startOfMonth.toLocaleString('en-US', { month: 'short' });
+
+    const [usersCount, jobsCount, applicationsCount] = await Promise.all([
+      prisma.user.count({
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+      }),
+      prisma.job.count({
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+      }),
+      prisma.application.count({
+        where: {
+          createdAt: {
+            gte: startOfMonth,
+            lte: endOfMonth,
+          },
+        },
+      }),
+    ]);
+
+    result.push({
+      date: monthName,
+      users: usersCount,
+      jobs: jobsCount,
+      applications: applicationsCount,
+    });
+  }
+
+  return result;
+}
+
 // ============================================
 // User Management
 // ============================================
@@ -1045,6 +1139,138 @@ export async function bulkApproveJobs(
   }
 
   return { approved, failed };
+}
+
+// ============================================
+// Application Management
+// ============================================
+
+interface ApplicationFilters {
+  status?: string;
+  search?: string;
+}
+
+export async function getApplications(
+  filters: ApplicationFilters,
+  page: number = 1,
+  limit: number = 20,
+  sortBy: string = 'createdAt',
+  sortOrder: 'asc' | 'desc' = 'desc'
+): Promise<{
+  applications: Array<Record<string, unknown>>;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}> {
+  const where: Record<string, unknown> = {};
+
+  if (filters.status) {
+    where.status = filters.status;
+  }
+
+  if (filters.search) {
+    where.OR = [
+      {
+        applicant: {
+          OR: [
+            { firstName: { contains: filters.search, mode: 'insensitive' } },
+            { lastName: { contains: filters.search, mode: 'insensitive' } },
+            { email: { contains: filters.search, mode: 'insensitive' } },
+          ],
+        },
+      },
+      {
+        job: {
+          title: { contains: filters.search, mode: 'insensitive' },
+        },
+      },
+    ];
+  }
+
+  const [applications, total] = await Promise.all([
+    prisma.application.findMany({
+      where,
+      include: {
+        applicant: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            profilePhotoUrl: true,
+          },
+        },
+        job: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: { [sortBy]: sortOrder },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.application.count({ where }),
+  ]);
+
+  // Transform to include employer from job.user
+  const transformedApplications = applications.map((app) => ({
+    ...app,
+    employer: app.job?.user,
+  }));
+
+  return {
+    applications: transformedApplications,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+export async function getApplicationById(applicationId: string): Promise<Record<string, unknown> | null> {
+  const app = await prisma.application.findUnique({
+    where: { id: applicationId },
+    include: {
+      applicant: {
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          profilePhotoUrl: true,
+          phone: true,
+          bio: true,
+        },
+      },
+      job: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!app) return null;
+
+  return {
+    ...app,
+    employer: app.job?.user,
+  };
 }
 
 // ============================================

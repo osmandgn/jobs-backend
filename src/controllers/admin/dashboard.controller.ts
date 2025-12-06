@@ -10,7 +10,7 @@ class DashboardController {
     try {
       const stats = await adminService.getDashboardStats();
 
-      sendSuccess(res, { stats });
+      sendSuccess(res, stats);
     } catch (error) {
       next(error);
     }
@@ -25,7 +25,35 @@ class DashboardController {
 
       const activities = await adminService.getRecentActivity(limit);
 
-      sendSuccess(res, { activities });
+      sendSuccess(res, activities);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /admin/chart - Get chart data for dashboard
+   */
+  async getChartData(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const days = parseInt(req.query.days as string) || 365;
+      const chartData = await adminService.getChartData(days);
+
+      sendSuccess(res, chartData);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * GET /admin/top-employers - Get top employers by job count
+   */
+  async getTopEmployers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const limit = Math.min(parseInt(req.query.limit as string) || 5, 20);
+      const employers = await adminService.getTopEmployers(limit);
+
+      sendSuccess(res, employers);
     } catch (error) {
       next(error);
     }

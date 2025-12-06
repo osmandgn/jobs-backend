@@ -22,6 +22,7 @@ services:
       - RESEND_API_KEY=re_5bjUjquT_CwVswv6fav11yus1xFA2sJg3
       - RESEND_FROM_EMAIL=onboarding@resend.dev
       - RESEND_FROM_NAME=GigHub UK
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:4000,http://localhost:8081
     depends_on:
       postgres:
         condition: service_healthy
@@ -63,6 +64,21 @@ services:
       timeout: 5s
       retries: 5
     command: redis-server --appendonly yes
+    networks:
+      - gighub-network
+
+  admin:
+    build:
+      context: ../admin
+      dockerfile: Dockerfile
+    container_name: gighub-admin
+    ports:
+      - '4000:3000'
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
+    depends_on:
+      - app
     networks:
       - gighub-network
 
