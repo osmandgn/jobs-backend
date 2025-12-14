@@ -10,58 +10,65 @@ const timeFormatRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
 export const createJobSchema = z.object({
   title: z
     .string()
-    .min(5, 'İş başlığı en az 5 karakter olmalıdır')
-    .max(100, 'İş başlığı en fazla 100 karakter olabilir'),
+    .min(5, 'Job title must be at least 5 characters')
+    .max(100, 'Job title cannot exceed 100 characters'),
   description: z
     .string()
-    .min(20, 'İş açıklaması en az 20 karakter olmalıdır')
-    .max(5000, 'İş açıklaması en fazla 5000 karakter olabilir'),
-  categoryId: z.string().uuid('Geçersiz kategori ID'),
+    .min(20, 'Job description must be at least 20 characters')
+    .max(5000, 'Job description cannot exceed 5000 characters'),
+  categoryId: z.string().uuid('Please select a valid category'),
   locationAddress: z
     .string()
-    .max(200, 'Adres en fazla 200 karakter olabilir')
+    .max(200, 'Address cannot exceed 200 characters')
     .optional(),
   locationPostcode: z
     .string()
-    .regex(ukPostcodeRegex, 'Geçerli bir UK posta kodu giriniz (örn: SW1A 1AA)'),
+    .regex(ukPostcodeRegex, 'Please enter a valid UK postcode (e.g., SW1A 1AA)')
+    .optional()
+    .nullable(),
   locationCity: z
     .string()
-    .max(100, 'Şehir adı en fazla 100 karakter olabilir')
+    .max(100, 'City name cannot exceed 100 characters')
     .optional(),
+  isRemote: z.boolean().optional().default(false),
   jobDate: z
     .string()
     .refine((val) => {
       const date = new Date(val);
       return !isNaN(date.getTime());
-    }, 'Geçerli bir tarih giriniz')
+    }, 'Please enter a valid date')
     .refine((val) => {
       const date = new Date(val);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return date >= today;
-    }, 'İş tarihi bugün veya gelecekte olmalıdır'),
+    }, 'Job date must be today or in the future')
+    .optional()
+    .nullable(),
   startTime: z
     .string()
-    .regex(timeFormatRegex, 'Geçerli bir saat formatı giriniz (örn: 09:00)'),
+    .regex(timeFormatRegex, 'Please enter a valid time (e.g., 09:00)')
+    .optional()
+    .nullable(),
   endTime: z
     .string()
-    .regex(timeFormatRegex, 'Geçerli bir saat formatı giriniz (örn: 17:00)')
+    .regex(timeFormatRegex, 'Please enter a valid time (e.g., 17:00)')
     .optional(),
   payAmount: z
     .number()
-    .positive('Ücret pozitif olmalıdır')
-    .max(10000, 'Ücret en fazla 10000 olabilir'),
+    .positive('Pay amount must be greater than zero')
+    .max(10000, 'Pay amount cannot exceed £10,000'),
   payType: z.enum(['hourly', 'fixed'], {
-    message: 'Ödeme tipi "hourly" veya "fixed" olmalıdır',
+    message: 'Pay type must be either "hourly" or "fixed"',
   }),
   experienceLevel: z
     .enum(['entry', 'intermediate', 'expert'], {
-      message: 'Deneyim seviyesi "entry", "intermediate" veya "expert" olmalıdır',
+      message: 'Experience level must be "entry", "intermediate", or "expert"',
     })
     .optional(),
   requiredSkillIds: z
-    .array(z.string().uuid('Geçersiz skill ID'))
-    .max(10, 'En fazla 10 beceri seçilebilir')
+    .array(z.string().uuid('Invalid skill ID'))
+    .max(10, 'You can select up to 10 skills')
     .optional(),
 });
 
@@ -69,27 +76,27 @@ export const createJobSchema = z.object({
 export const updateJobSchema = z.object({
   title: z
     .string()
-    .min(5, 'İş başlığı en az 5 karakter olmalıdır')
-    .max(100, 'İş başlığı en fazla 100 karakter olabilir')
+    .min(5, 'Job title must be at least 5 characters')
+    .max(100, 'Job title cannot exceed 100 characters')
     .optional(),
   description: z
     .string()
-    .min(20, 'İş açıklaması en az 20 karakter olmalıdır')
-    .max(5000, 'İş açıklaması en fazla 5000 karakter olabilir')
+    .min(20, 'Job description must be at least 20 characters')
+    .max(5000, 'Job description cannot exceed 5000 characters')
     .optional(),
-  categoryId: z.string().uuid('Geçersiz kategori ID').optional(),
+  categoryId: z.string().uuid('Please select a valid category').optional(),
   locationAddress: z
     .string()
-    .max(200, 'Adres en fazla 200 karakter olabilir')
+    .max(200, 'Address cannot exceed 200 characters')
     .nullable()
     .optional(),
   locationPostcode: z
     .string()
-    .regex(ukPostcodeRegex, 'Geçerli bir UK posta kodu giriniz (örn: SW1A 1AA)')
+    .regex(ukPostcodeRegex, 'Please enter a valid UK postcode (e.g., SW1A 1AA)')
     .optional(),
   locationCity: z
     .string()
-    .max(100, 'Şehir adı en fazla 100 karakter olabilir')
+    .max(100, 'City name cannot exceed 100 characters')
     .nullable()
     .optional(),
   jobDate: z
@@ -97,55 +104,55 @@ export const updateJobSchema = z.object({
     .refine((val) => {
       const date = new Date(val);
       return !isNaN(date.getTime());
-    }, 'Geçerli bir tarih giriniz')
+    }, 'Please enter a valid date')
     .refine((val) => {
       const date = new Date(val);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       return date >= today;
-    }, 'İş tarihi bugün veya gelecekte olmalıdır')
+    }, 'Job date must be today or in the future')
     .optional(),
   startTime: z
     .string()
-    .regex(timeFormatRegex, 'Geçerli bir saat formatı giriniz (örn: 09:00)')
+    .regex(timeFormatRegex, 'Please enter a valid time (e.g., 09:00)')
     .optional(),
   endTime: z
     .string()
-    .regex(timeFormatRegex, 'Geçerli bir saat formatı giriniz (örn: 17:00)')
+    .regex(timeFormatRegex, 'Please enter a valid time (e.g., 17:00)')
     .nullable()
     .optional(),
   payAmount: z
     .number()
-    .positive('Ücret pozitif olmalıdır')
-    .max(10000, 'Ücret en fazla 10000 olabilir')
+    .positive('Pay amount must be greater than zero')
+    .max(10000, 'Pay amount cannot exceed £10,000')
     .optional(),
   payType: z
     .enum(['hourly', 'fixed'], {
-      message: 'Ödeme tipi "hourly" veya "fixed" olmalıdır',
+      message: 'Pay type must be either "hourly" or "fixed"',
     })
     .optional(),
   experienceLevel: z
     .enum(['entry', 'intermediate', 'expert'], {
-      message: 'Deneyim seviyesi "entry", "intermediate" veya "expert" olmalıdır',
+      message: 'Experience level must be "entry", "intermediate", or "expert"',
     })
     .nullable()
     .optional(),
   requiredSkillIds: z
-    .array(z.string().uuid('Geçersiz skill ID'))
-    .max(10, 'En fazla 10 beceri seçilebilir')
+    .array(z.string().uuid('Invalid skill ID'))
+    .max(10, 'You can select up to 10 skills')
     .optional(),
 });
 
 // Update job status schema
 export const updateJobStatusSchema = z.object({
   status: z.enum(['active', 'paused', 'filled', 'completed', 'expired'], {
-    message: 'Geçersiz status. İzin verilenler: active, paused, filled, completed, expired',
+    message: 'Invalid status. Allowed values: active, paused, filled, completed, expired',
   }),
 });
 
 // Job ID parameter
 export const jobIdSchema = z.object({
-  id: z.string().uuid('Geçersiz iş ilanı ID'),
+  id: z.string().uuid('Invalid job ID'),
 });
 
 // Get my jobs query schema
@@ -166,12 +173,12 @@ export const jobSearchQuerySchema = z.object({
   // Sorting
   sort: z
     .enum(['newest', 'nearest', 'highest_pay', 'ending_soon'], {
-      message: 'Geçersiz sıralama. İzin verilenler: newest, nearest, highest_pay, ending_soon',
+      message: 'Invalid sort option. Allowed values: newest, nearest, highest_pay, ending_soon',
     })
     .default('newest'),
 
   // Category filters
-  categoryId: z.string().uuid('Geçersiz kategori ID').optional(),
+  categoryId: z.string().uuid('Invalid category ID').optional(),
   categorySlug: z.string().optional(),
 
   // Location filters

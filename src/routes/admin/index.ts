@@ -10,6 +10,7 @@ import { adminApplicationController } from '../../controllers/admin/application.
 import { adminLogsController } from '../../controllers/admin/logs.controller';
 import { adminReportController } from '../../controllers/admin/report.controller';
 import { adminSettingsController } from '../../controllers/admin/settings.controller';
+import { monitoringController } from '../../controllers/admin/monitoring.controller';
 
 const router = Router();
 
@@ -63,6 +64,17 @@ router.put('/settings/:key', adminSettingsController.updateSetting.bind(adminSet
 
 // Admin logs
 router.get('/logs', adminLogsController.getLogs.bind(adminLogsController));
+
+// System monitoring routes
+router.get('/monitoring/system', monitoringController.getSystemOverview.bind(monitoringController));
+router.get('/monitoring/api-metrics', monitoringController.getApiMetrics.bind(monitoringController));
+router.get('/monitoring/endpoints', monitoringController.getEndpointMetrics.bind(monitoringController));
+router.get('/monitoring/endpoints/slowest', monitoringController.getSlowestEndpoints.bind(monitoringController));
+router.get('/monitoring/errors', monitoringController.getErrors.bind(monitoringController));
+router.get('/monitoring/errors/trends', monitoringController.getErrorTrends.bind(monitoringController));
+router.get('/monitoring/errors/by-type', monitoringController.getErrorsByType.bind(monitoringController));
+router.get('/monitoring/queries', monitoringController.getQueryAnalytics.bind(monitoringController));
+router.get('/monitoring/logs', monitoringController.getLogs.bind(monitoringController));
 
 // Category & skill management (existing routes)
 router.use('/categories', adminCategoryRoutes);

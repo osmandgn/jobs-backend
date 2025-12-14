@@ -4,32 +4,32 @@ import { z } from 'zod';
 export const applyToJobSchema = z.object({
   message: z
     .string()
-    .min(50, 'Başvuru mesajı en az 50 karakter olmalıdır')
-    .max(500, 'Başvuru mesajı en fazla 500 karakter olabilir'),
+    .min(20, 'Your message must be at least 20 characters. Tell the employer why you are a good fit!')
+    .max(500, 'Your message cannot exceed 500 characters'),
 });
 
 // Update application status schema (employer)
 export const updateApplicationStatusSchema = z.object({
   status: z.enum(['accepted', 'rejected'], {
-    message: 'Durum "accepted" veya "rejected" olmalıdır',
+    message: 'Status must be either "accepted" or "rejected"',
   }),
 });
 
 // Application ID parameter
 export const applicationIdSchema = z.object({
-  id: z.string().uuid('Geçersiz başvuru ID'),
+  id: z.string().uuid('Invalid application ID'),
 });
 
 // Job ID parameter for applications
 export const jobIdParamSchema = z.object({
-  jobId: z.string().uuid('Geçersiz iş ilanı ID'),
+  jobId: z.string().uuid('Invalid job ID'),
 });
 
 // Get applications query schema
 export const getApplicationsQuerySchema = z.object({
   status: z
     .enum(['pending', 'accepted', 'rejected', 'withdrawn'], {
-      message: 'Geçersiz durum filtresi',
+      message: 'Invalid status filter',
     })
     .optional(),
   page: z.coerce.number().int().positive().default(1),

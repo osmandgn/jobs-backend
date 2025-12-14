@@ -55,7 +55,7 @@ export interface ReviewListItem {
 export interface PendingReviewJob {
   id: string;
   title: string;
-  jobDate: Date;
+  jobDate: Date | null;
   completedAt: Date | null;
   otherParty: {
     id: string;

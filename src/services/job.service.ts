@@ -35,13 +35,14 @@ export interface JobDetailResponse {
     slug: string;
     icon: string | null;
   };
+  isRemote: boolean;
   locationAddress: string | null;
-  locationPostcode: string;
+  locationPostcode: string | null;
   locationCity: string | null;
-  locationLat: number;
-  locationLng: number;
-  jobDate: Date;
-  startTime: string;
+  locationLat: number | null;
+  locationLng: number | null;
+  jobDate: Date | null;
+  startTime: string | null;
   endTime: string | null;
   payAmount: number;
   payType: PayType;
@@ -81,12 +82,13 @@ export interface JobDetailResponse {
 export interface JobListItem {
   id: string;
   title: string;
+  isRemote: boolean;
   locationCity: string | null;
-  locationPostcode: string;
-  locationLat: number;
-  locationLng: number;
-  jobDate: Date;
-  startTime: string;
+  locationPostcode: string | null;
+  locationLat: number | null;
+  locationLng: number | null;
+  jobDate: Date | null;
+  startTime: string | null;
   payAmount: number;
   payType: PayType;
   status: JobStatus;
@@ -139,23 +141,31 @@ class JobService {
       }
     }
 
-    // Geocode postcode
-    const coords = await this.geocodePostcode(data.locationPostcode);
-    if (!coords) {
-      throw new BadRequestError('Geçersiz posta kodu', ErrorCodes.VALIDATION_INVALID_POSTCODE);
+    // Handle location - optional for remote jobs
+    let coords: { lat: number; lng: number } | null = null;
+    const isRemote = data.isRemote || false;
+
+    if (!isRemote && data.locationPostcode) {
+      coords = await this.geocodePostcode(data.locationPostcode);
+      if (!coords) {
+        throw new BadRequestError('Geçersiz posta kodu', ErrorCodes.VALIDATION_INVALID_POSTCODE);
+      }
     }
 
-    // Get system settings
-    const requiresApproval = await this.getSystemSetting('job_requires_approval', 'false');
+    // Get system settings - jobs always require approval now
     const expiryDays = await this.getSystemSetting('job_expiry_days', '7');
 
-    // Calculate expiry date
-    const jobDate = new Date(data.jobDate);
-    const expiresAt = new Date(jobDate);
-    expiresAt.setDate(expiresAt.getDate() + parseInt(expiryDays, 10));
+    // Calculate expiry date if jobDate is provided
+    let expiresAt: Date | null = null;
+    let jobDate: Date | null = null;
+    if (data.jobDate) {
+      jobDate = new Date(data.jobDate);
+      expiresAt = new Date(jobDate);
+      expiresAt.setDate(expiresAt.getDate() + parseInt(expiryDays, 10));
+    }
 
-    // Determine initial status
-    const initialStatus: JobStatus = requiresApproval === 'true' ? 'pending_review' : 'active';
+    // All new jobs start as pending_review for admin approval
+    const initialStatus: JobStatus = 'pending_review';
 
     // Create job with transaction
     const job = await prisma.$transaction(async (tx) => {
@@ -165,13 +175,14 @@ class JobService {
           categoryId: data.categoryId,
           title: data.title,
           description: data.description,
+          isRemote,
           locationAddress: data.locationAddress,
-          locationPostcode: data.locationPostcode.toUpperCase().replace(/\s+/g, ' ').trim(),
+          locationPostcode: data.locationPostcode ? data.locationPostcode.toUpperCase().replace(/\s+/g, ' ').trim() : null,
           locationCity: data.locationCity,
-          locationLat: coords.lat,
-          locationLng: coords.lng,
+          locationLat: coords?.lat ?? null,
+          locationLng: coords?.lng ?? null,
           jobDate: jobDate,
-          startTime: data.startTime,
+          startTime: data.startTime || null,
           endTime: data.endTime,
           payAmount: data.payAmount,
           payType: data.payType as PayType,
@@ -194,7 +205,7 @@ class JobService {
       return createdJob;
     });
 
-    logger.info(`Job created: ${job.id} by user: ${userId}`);
+    logger.info(`Job created: ${job.id} by user: ${userId} (pending approval)`);
 
     // Invalidate related caches
     await this.invalidateJobCaches(userId);
@@ -382,6 +393,7 @@ class JobService {
         description: dbJob.description,
         categoryId: dbJob.categoryId,
         category: dbJob.category,
+        isRemote: dbJob.isRemote,
         locationAddress: dbJob.locationAddress,
         locationPostcode: dbJob.locationPostcode,
         locationCity: dbJob.locationCity,
@@ -489,6 +501,7 @@ class JobService {
     const jobList: JobListItem[] = jobs.map((job) => ({
       id: job.id,
       title: job.title,
+      isRemote: job.isRemote,
       locationCity: job.locationCity,
       locationPostcode: job.locationPostcode,
       locationLat: job.locationLat,
@@ -553,9 +566,13 @@ class JobService {
     }
 
     // Build where clause
+    // Include jobs where jobDate is null OR jobDate is in the future
     const where: Prisma.JobWhereInput = {
       status: 'active',
-      jobDate: { gte: new Date() },
+      OR: [
+        { jobDate: null },
+        { jobDate: { gte: new Date() } },
+      ],
     };
 
     // Category filter (include subcategories)
@@ -602,12 +619,15 @@ class JobService {
       where.payType = payType;
     }
 
-    // Date filters
-    if (dateFrom) {
-      where.jobDate = { ...(where.jobDate as object), gte: new Date(dateFrom) };
-    }
-    if (dateTo) {
-      where.jobDate = { ...(where.jobDate as object), lte: new Date(dateTo) };
+    // Date filters - only apply when explicitly requested
+    if (dateFrom || dateTo) {
+      // When filtering by date, exclude jobs without dates
+      const dateFilter: Prisma.DateTimeNullableFilter = { not: null };
+      if (dateFrom) dateFilter.gte = new Date(dateFrom);
+      if (dateTo) dateFilter.lte = new Date(dateTo);
+      // Replace the OR with specific date filter
+      delete where.OR;
+      where.jobDate = dateFilter;
     }
 
     // Experience level
@@ -615,11 +635,15 @@ class JobService {
       where.experienceLevel = experienceLevel;
     }
 
-    // Keyword search
+    // Keyword search - use AND to combine with other conditions
     if (keyword) {
-      where.OR = [
-        { title: { contains: keyword, mode: 'insensitive' } },
-        { description: { contains: keyword, mode: 'insensitive' } },
+      where.AND = [
+        {
+          OR: [
+            { title: { contains: keyword, mode: 'insensitive' } },
+            { description: { contains: keyword, mode: 'insensitive' } },
+          ],
+        },
       ];
     }
 
@@ -660,6 +684,7 @@ class JobService {
       const item: JobListItem = {
         id: job.id,
         title: job.title,
+        isRemote: job.isRemote,
         locationCity: job.locationCity,
         locationPostcode: job.locationPostcode,
         locationLat: job.locationLat,
@@ -675,8 +700,8 @@ class JobService {
         employer: job.user,
       };
 
-      // Calculate distance if center is provided
-      if (centerLat !== undefined && centerLng !== undefined) {
+      // Calculate distance if center is provided (only for non-remote jobs with location)
+      if (centerLat !== undefined && centerLng !== undefined && job.locationLat && job.locationLng) {
         item.distance = calculateDistance(centerLat, centerLng, job.locationLat, job.locationLng);
       }
 
@@ -926,6 +951,7 @@ class JobService {
     const jobList: JobListItem[] = savedJobs.map((sj) => ({
       id: sj.job.id,
       title: sj.job.title,
+      isRemote: sj.job.isRemote,
       locationCity: sj.job.locationCity,
       locationPostcode: sj.job.locationPostcode,
       locationLat: sj.job.locationLat,

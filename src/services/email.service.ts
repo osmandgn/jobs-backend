@@ -72,6 +72,11 @@ export class EmailService {
   }
 
   async sendVerificationEmail(to: string, code: string, firstName: string): Promise<boolean> {
+    // Log verification code in development for testing
+    if (config.env === 'development') {
+      logger.info(`📧 VERIFICATION CODE for ${to}: ${code}`);
+    }
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -167,6 +172,11 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(to: string, code: string, firstName: string): Promise<boolean> {
+    // Log password reset code in development for testing
+    if (config.env === 'development') {
+      logger.info(`📧 PASSWORD RESET CODE for ${to}: ${code}`);
+    }
+
     const html = `
       <!DOCTYPE html>
       <html>

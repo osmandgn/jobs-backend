@@ -24,11 +24,23 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictError('Email already registered', ErrorCodes.USER_EMAIL_EXISTS);
+      throw new ConflictError('This email address is already registered. Please use a different email or try logging in.', ErrorCodes.USER_EMAIL_EXISTS);
     }
 
     // Hash password
     const passwordHash = await bcrypt.hash(data.password, SALT_ROUNDS);
+
+    // Normalize phone number if provided
+    let normalizedPhone: string | undefined;
+    if (data.phone) {
+      try {
+        const normalized = normalizeUKPhone(data.phone);
+        normalizedPhone = normalized || data.phone.replace(/\s/g, '');
+      } catch {
+        // Keep original format if normalization fails
+        normalizedPhone = data.phone.replace(/\s/g, '');
+      }
+    }
 
     // Create user
     const user = await prisma.user.create({
@@ -37,6 +49,7 @@ export class AuthService {
         passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
+        phone: normalizedPhone,
         emailVerified: false,
       },
     });

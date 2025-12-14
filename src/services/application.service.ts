@@ -26,9 +26,9 @@ export interface ApplicationListItem {
     id: string;
     title: string;
     locationCity: string | null;
-    locationPostcode: string;
-    jobDate: Date;
-    startTime: string;
+    locationPostcode: string | null;
+    jobDate: Date | null;
+    startTime: string | null;
     payAmount: number;
     payType: string;
     status: string;
@@ -87,11 +87,13 @@ class ApplicationService {
       throw new BadRequestError('Bu iş ilanı aktif değil', ErrorCodes.JOB_NOT_ACTIVE);
     }
 
-    // Check job date not passed
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (job.jobDate < today) {
-      throw new BadRequestError('Bu iş ilanının tarihi geçmiş', ErrorCodes.JOB_EXPIRED);
+    // Check job date not passed (only if jobDate is set)
+    if (job.jobDate) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (job.jobDate < today) {
+        throw new BadRequestError('Bu iş ilanının tarihi geçmiş', ErrorCodes.JOB_EXPIRED);
+      }
     }
 
     // Check not own job
@@ -605,9 +607,9 @@ class ApplicationService {
         title: string;
         description: string;
         locationCity: string | null;
-        locationPostcode: string;
-        jobDate: Date;
-        startTime: string;
+        locationPostcode: string | null;
+        jobDate: Date | null;
+        startTime: string | null;
         payAmount: Prisma.Decimal;
         payType: string;
         status: string;

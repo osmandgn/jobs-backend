@@ -40,7 +40,7 @@ export interface ConversationDetail {
     status: string;
     payAmount: number;
     payType: string;
-    jobDate: Date;
+    jobDate: Date | null;
   };
   employer: {
     id: string;

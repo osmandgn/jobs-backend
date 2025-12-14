@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { config } from './index';
 import logger from '../utils/logger';
+import { queryAnalyticsService } from '../services/monitoring/queryAnalytics.service';
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
 
@@ -21,6 +22,29 @@ if (config.env === 'development') {
   prisma.$on('query' as never, (e: { query: string; duration: number }) => {
     logger.debug(`Query: ${e.query}`);
     logger.debug(`Duration: ${e.duration}ms`);
+
+    // Track query for monitoring (extract model and operation from query)
+    const queryLower = e.query.toLowerCase();
+    let operation = 'unknown';
+    let model = 'unknown';
+
+    if (queryLower.includes('select')) operation = 'findMany';
+    else if (queryLower.includes('insert')) operation = 'create';
+    else if (queryLower.includes('update')) operation = 'update';
+    else if (queryLower.includes('delete')) operation = 'delete';
+
+    // Try to extract table/model name
+    const tableMatch = e.query.match(/(?:from|into|update)\s+"?public"?\."?(\w+)"?/i);
+    if (tableMatch && tableMatch[1]) {
+      model = tableMatch[1];
+    }
+
+    queryAnalyticsService.recordQuery({
+      query: e.query,
+      model,
+      operation,
+      duration: e.duration,
+    });
   });
 }
 

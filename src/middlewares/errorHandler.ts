@@ -5,6 +5,8 @@ import { AppError, ErrorCodes } from '../utils/AppError';
 import logger from '../utils/logger';
 import { sendError } from '../utils/response';
 import { config } from '../config';
+import { errorTrackingService } from '../services/monitoring/errorTracking.service';
+import { captureLog } from '../services/monitoring/logsService';
 
 export function errorHandler(
   err: Error,
@@ -21,6 +23,31 @@ export function errorHandler(
     stack: config.env !== 'production' ? err.stack : undefined,
     path: req.path,
     method: req.method,
+  });
+
+  // Capture error for monitoring
+  captureLog('ERROR', `[${requestId}] ${err.name}: ${err.message}`, {
+    requestId,
+    path: req.path,
+    method: req.method,
+  });
+
+  // Track error for monitoring dashboard (async, non-blocking)
+  setImmediate(() => {
+    const statusCode = err instanceof AppError ? err.statusCode : 500;
+    const code = err instanceof AppError ? err.code : 'INTERNAL_ERROR';
+
+    errorTrackingService.recordError({
+      type: err.name,
+      code,
+      message: err.message,
+      stack: config.env !== 'production' ? err.stack : undefined,
+      endpoint: req.path,
+      method: req.method,
+      statusCode,
+      requestId,
+      userId: (req as any).user?.id,
+    });
   });
 
   // Handle AppError (our custom errors)

@@ -302,18 +302,19 @@ model Job {
   categoryId        String          @map("category_id")
   title             String
   description       String
+  isRemote          Boolean         @default(false) @map("is_remote")
   locationAddress   String?         @map("location_address")
-  locationPostcode  String          @map("location_postcode")
+  locationPostcode  String?         @map("location_postcode")
   locationCity      String?         @map("location_city")
-  locationLat       Float           @map("location_lat")
-  locationLng       Float           @map("location_lng")
-  jobDate           DateTime        @map("job_date") @db.Date
-  startTime         String          @map("start_time")
+  locationLat       Float?          @map("location_lat")
+  locationLng       Float?          @map("location_lng")
+  jobDate           DateTime?       @map("job_date") @db.Date
+  startTime         String?         @map("start_time")
   endTime           String?         @map("end_time")
   payAmount         Decimal         @map("pay_amount") @db.Decimal(10, 2)
   payType           PayType         @map("pay_type")
   experienceLevel   ExperienceLevel? @map("experience_level")
-  status            JobStatus       @default(draft)
+  status            JobStatus       @default(pending_review)
   viewsCount        Int             @default(0) @map("views_count")
   applicationsCount Int             @default(0) @map("applications_count")
   adminNotes        String?         @map("admin_notes")

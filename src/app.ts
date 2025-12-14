@@ -9,8 +9,10 @@ import { config } from './config';
 import { setupSwagger } from './config/swagger';
 import { requestIdMiddleware } from './middlewares/requestId';
 import { generalLimiter } from './middlewares/rateLimiter';
+import { requestMetricsMiddleware } from './middlewares/requestMetrics.middleware';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import logger from './utils/logger';
+import { captureLog } from './services/monitoring/logsService';
 
 import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
@@ -79,18 +81,27 @@ if (config.env !== 'production') {
 // Rate limiting
 app.use(`/api/${config.apiVersion}`, generalLimiter);
 
+// Request metrics (for monitoring)
+app.use(requestMetricsMiddleware);
+
 // Request logging
 app.use((req, res, next) => {
   const start = Date.now();
 
   res.on('finish', () => {
     const duration = Date.now() - start;
-    logger.info(`${req.method} ${req.path}`, {
+    const logMessage = `${req.method} ${req.path}`;
+    const logMeta = {
       requestId: req.requestId,
       status: res.statusCode,
       duration: `${duration}ms`,
       ip: req.ip,
-    });
+    };
+
+    logger.info(logMessage, logMeta);
+
+    // Capture log for monitoring
+    captureLog('INFO', logMessage, logMeta);
   });
 
   next();
