@@ -67,18 +67,28 @@ class UploadService {
   private s3Client: S3Client;
   private bucket: string;
   private region: string;
+  private endpoint?: string;
 
   constructor() {
     this.region = config.aws.region;
     this.bucket = config.aws.s3Bucket;
+    this.endpoint = config.aws.s3Endpoint;
 
-    this.s3Client = new S3Client({
+    const s3Config: ConstructorParameters<typeof S3Client>[0] = {
       region: this.region,
       credentials: {
         accessKeyId: config.aws.accessKeyId,
         secretAccessKey: config.aws.secretAccessKey,
       },
-    });
+    };
+
+    // MinIO/self-hosted S3 compatible storage support
+    if (this.endpoint) {
+      s3Config.endpoint = this.endpoint;
+      s3Config.forcePathStyle = true; // Required for MinIO
+    }
+
+    this.s3Client = new S3Client(s3Config);
   }
 
   /**
@@ -95,6 +105,11 @@ class UploadService {
    * Get the public URL for an S3 object
    */
   private getPublicUrl(key: string): string {
+    // MinIO/self-hosted S3 compatible storage
+    if (this.endpoint) {
+      return `${this.endpoint}/${this.bucket}/${key}`;
+    }
+    // AWS S3
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
   }
 
