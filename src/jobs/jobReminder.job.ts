@@ -43,6 +43,8 @@ export async function sendJobReminders(): Promise<number> {
     let remindersSent = 0;
 
     for (const job of upcomingJobs) {
+      if (!job.jobDate) continue;
+
       const hoursUntilJob = Math.round(
         (job.jobDate.getTime() - now.getTime()) / (1000 * 60 * 60)
       );

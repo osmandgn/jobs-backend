@@ -96,7 +96,7 @@ export async function findMatchingUsers(
   const matchedUsers: MatchedUser[] = [];
 
   for (const user of potentialUsers) {
-    if (user.locationLat && user.locationLng) {
+    if (user.locationLat && user.locationLng && job.locationLat && job.locationLng) {
       const distance = calculateDistance(
         user.locationLat,
         user.locationLng,
@@ -170,6 +170,8 @@ export async function findMatchingJobs(userId: string, limit: number = 10): Prom
   const matchingJobs: Job[] = [];
 
   for (const job of jobs) {
+    if (!job.locationLat || !job.locationLng) continue;
+
     const distance = calculateDistance(
       user.locationLat,
       user.locationLng,
@@ -243,6 +245,8 @@ export async function getUnreadJobMatches(
 
   // Filter by distance
   const matchingJobs = jobs.filter((job) => {
+    if (!job.locationLat || !job.locationLng) return false;
+
     const distance = calculateDistance(
       user.locationLat!,
       user.locationLng!,
