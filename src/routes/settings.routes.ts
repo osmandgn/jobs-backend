@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { settingsService } from '../services/settings.service';
-import { sendSuccess } from '../utils/apiResponse';
+import { sendSuccess } from '../utils/response';
 
 const router = Router();
 
