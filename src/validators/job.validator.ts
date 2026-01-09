@@ -70,6 +70,10 @@ export const createJobSchema = z.object({
     .array(z.string().uuid('Invalid skill ID'))
     .max(10, 'You can select up to 10 skills')
     .optional(),
+  imageUrls: z
+    .array(z.string().url('Invalid image URL'))
+    .max(10, 'You can upload up to 10 images')
+    .optional(),
 });
 
 // Update job schema
@@ -140,6 +144,10 @@ export const updateJobSchema = z.object({
   requiredSkillIds: z
     .array(z.string().uuid('Invalid skill ID'))
     .max(10, 'You can select up to 10 skills')
+    .optional(),
+  imageUrls: z
+    .array(z.string().url('Invalid image URL'))
+    .max(10, 'You can upload up to 10 images')
     .optional(),
 });
 

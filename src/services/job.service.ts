@@ -141,6 +141,17 @@ class JobService {
       }
     }
 
+    // Validate images count against settings
+    if (data.imageUrls && data.imageUrls.length > 0) {
+      const maxImages = await this.getSystemSetting('max_images_per_job', '5');
+      if (data.imageUrls.length > parseInt(maxImages, 10)) {
+        throw new BadRequestError(
+          `En fazla ${maxImages} fotoğraf yükleyebilirsiniz`,
+          ErrorCodes.BAD_REQUEST
+        );
+      }
+    }
+
     // Handle location - optional for remote jobs
     let coords: { lat: number; lng: number } | null = null;
     const isRemote = data.isRemote || false;
@@ -198,6 +209,17 @@ class JobService {
           data: data.requiredSkillIds.map((skillId) => ({
             jobId: createdJob.id,
             skillId,
+          })),
+        });
+      }
+
+      // Add job images
+      if (data.imageUrls && data.imageUrls.length > 0) {
+        await tx.jobImage.createMany({
+          data: data.imageUrls.map((imageUrl, index) => ({
+            jobId: createdJob.id,
+            imageUrl,
+            sortOrder: index,
           })),
         });
       }
@@ -261,6 +283,17 @@ class JobService {
       }
     }
 
+    // Validate images count against settings
+    if (data.imageUrls && data.imageUrls.length > 0) {
+      const maxImages = await this.getSystemSetting('max_images_per_job', '5');
+      if (data.imageUrls.length > parseInt(maxImages, 10)) {
+        throw new BadRequestError(
+          `En fazla ${maxImages} fotoğraf yükleyebilirsiniz`,
+          ErrorCodes.BAD_REQUEST
+        );
+      }
+    }
+
     // Geocode if postcode is changing
     let coords: { lat: number; lng: number } | null = null;
     if (data.locationPostcode && data.locationPostcode !== job.locationPostcode) {
@@ -320,6 +353,25 @@ class JobService {
             data: data.requiredSkillIds.map((skillId) => ({
               jobId,
               skillId,
+            })),
+          });
+        }
+      }
+
+      // Update job images if provided
+      if (data.imageUrls !== undefined) {
+        // Delete existing images
+        await tx.jobImage.deleteMany({
+          where: { jobId },
+        });
+
+        // Add new images
+        if (data.imageUrls.length > 0) {
+          await tx.jobImage.createMany({
+            data: data.imageUrls.map((imageUrl, index) => ({
+              jobId,
+              imageUrl,
+              sortOrder: index,
             })),
           });
         }

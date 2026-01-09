@@ -33,6 +33,8 @@ import notificationRoutes from './routes/notification.routes';
 import adminRoutes from './routes/admin';
 import legalRoutes from './routes/legal.routes';
 import gdprRoutes from './routes/gdpr.routes';
+import settingsRoutes from './routes/settings.routes';
+import appRoutes from './routes/app.routes';
 
 const app: Application = express();
 
@@ -127,6 +129,8 @@ app.use(`/api/${config.apiVersion}/notifications`, notificationRoutes);
 app.use(`/api/${config.apiVersion}/admin`, adminRoutes);
 app.use(`/api/${config.apiVersion}/legal`, legalRoutes);
 app.use(`/api/${config.apiVersion}/gdpr`, gdprRoutes);
+app.use(`/api/${config.apiVersion}/settings`, settingsRoutes);
+app.use(`/api/${config.apiVersion}/app`, appRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

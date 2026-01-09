@@ -29,6 +29,9 @@ const SETTING_TYPES: Record<string, SettingValueType> = {
   max_images_per_job: 'number',
   review_window_days: 'number',
   job_expiry_days: 'number',
+  featured_job_price: 'number',
+  min_pay_amount: 'number',
+  max_pay_amount: 'number',
   min_password_length: 'number',
   max_applications_per_day: 'number',
   max_report_evidence: 'number',
@@ -43,14 +46,23 @@ const SETTING_TYPES: Record<string, SettingValueType> = {
   unverified_cleanup_days: 'number',
   message_max_length: 'number',
   bio_max_length: 'number',
+  // App version settings
+  min_app_version_ios: 'string',
+  min_app_version_android: 'string',
+  force_update_message: 'string',
+  app_store_url: 'string',
+  play_store_url: 'string',
 };
 
 // Default values
 const DEFAULT_SETTINGS: Record<string, string> = {
-  job_requires_approval: 'false',
+  job_requires_approval: 'true',
   max_images_per_job: '5',
   review_window_days: '14',
-  job_expiry_days: '7',
+  job_expiry_days: '30',
+  featured_job_price: '9.99',
+  min_pay_amount: '10',
+  max_pay_amount: '10000',
   min_password_length: '8',
   max_applications_per_day: '20',
   max_report_evidence: '5',
@@ -65,6 +77,12 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   unverified_cleanup_days: '30',
   message_max_length: '2000',
   bio_max_length: '500',
+  // App version defaults
+  min_app_version_ios: '1.0.0',
+  min_app_version_android: '1.0.0',
+  force_update_message: 'A new version of GigHub is available. Please update to continue using the app.',
+  app_store_url: 'https://apps.apple.com/app/gighub-uk/id123456789',
+  play_store_url: 'https://play.google.com/store/apps/details?id=uk.gighub.app',
 };
 
 /**
