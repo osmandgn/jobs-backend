@@ -16,6 +16,8 @@ export const ALLOWED_IMAGE_TYPES = [
   'image/jpg',
   'image/png',
   'image/webp',
+  'image/heic',
+  'image/heif',
 ] as const;
 
 export const ALLOWED_DOCUMENT_TYPES = [

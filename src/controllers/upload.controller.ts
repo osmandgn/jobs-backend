@@ -5,6 +5,7 @@ import { profileService } from '../services/profile.service';
 import { sendSuccess, sendNoContent } from '../utils/response';
 import { AppError, ErrorCodes, BadRequestError } from '../utils/AppError';
 import { presignedUrlSchema, PresignedUrlInput } from '../validators/upload.validator';
+import { config } from '../config';
 import logger from '../utils/logger';
 
 // Extended Request type for multer
@@ -199,11 +200,19 @@ export class UploadController {
         contentType
       );
 
+      // Build public URL - handle both AWS S3 and S3-compatible storage (MinIO)
+      let publicUrl: string;
+      if (config.aws.s3Endpoint) {
+        publicUrl = `${config.aws.s3Endpoint}/${config.aws.s3Bucket}/${result.key}`;
+      } else {
+        publicUrl = `https://${config.aws.s3Bucket}.s3.${config.aws.region}.amazonaws.com/${result.key}`;
+      }
+
       sendSuccess(res, {
         uploadUrl: result.uploadUrl,
         key: result.key,
         expiresIn: result.expiresIn,
-        publicUrl: `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION || 'eu-west-2'}.amazonaws.com/${result.key}`,
+        publicUrl,
       }, 'Presigned URL generated');
     } catch (error) {
       next(error);
@@ -245,7 +254,12 @@ export class UploadController {
       const oldPhotoUrl = currentProfile.profilePhotoUrl;
 
       // Construct public URL
-      const publicUrl = `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION || 'eu-west-2'}.amazonaws.com/${key}`;
+      let publicUrl: string;
+      if (config.aws.s3Endpoint) {
+        publicUrl = `${config.aws.s3Endpoint}/${config.aws.s3Bucket}/${key}`;
+      } else {
+        publicUrl = `https://${config.aws.s3Bucket}.s3.${config.aws.region}.amazonaws.com/${key}`;
+      }
 
       // Update user profile
       const updatedProfile = await userService.updateProfilePhoto(userId, publicUrl);
@@ -314,7 +328,12 @@ export class UploadController {
       const oldImageUrl = item.imageUrl;
 
       // Construct public URL
-      const publicUrl = `https://${process.env.S3_BUCKET}.s3.${process.env.AWS_REGION || 'eu-west-2'}.amazonaws.com/${key}`;
+      let publicUrl: string;
+      if (config.aws.s3Endpoint) {
+        publicUrl = `${config.aws.s3Endpoint}/${config.aws.s3Bucket}/${key}`;
+      } else {
+        publicUrl = `https://${config.aws.s3Bucket}.s3.${config.aws.region}.amazonaws.com/${key}`;
+      }
 
       // Update portfolio item
       const updatedItem = await profileService.updatePortfolioItem(userId, itemId, {
