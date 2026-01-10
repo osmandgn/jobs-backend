@@ -12,7 +12,7 @@ class AdminSettingsController {
     try {
       const settings = await settingsService.getAllSettings();
 
-      // Convert to array format for easier frontend consumption
+      // Return both array format (for detailed view) and object format (for easy access)
       const settingsArray = Object.values(settings).map((setting) => ({
         key: setting.key,
         value: setting.value,
@@ -22,7 +22,13 @@ class AdminSettingsController {
         updatedBy: setting.updatedBy,
       }));
 
-      sendSuccess(res, { settings: settingsArray });
+      // Also create key-value object for easier frontend consumption
+      const settingsObject: Record<string, any> = {};
+      for (const setting of settingsArray) {
+        settingsObject[setting.key] = setting.value;
+      }
+
+      sendSuccess(res, { settings: settingsArray, ...settingsObject });
     } catch (error) {
       next(error);
     }
