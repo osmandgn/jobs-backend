@@ -33,12 +33,10 @@ export const registerSchema = z.object({
   phone: z
     .string()
     .min(10, 'Phone number is too short')
-    .max(20, 'Phone number is too long')
-    .optional(),
+    .max(20, 'Phone number is too long'),
   termsAccepted: z
     .boolean()
-    .refine((val) => val === true, 'You must accept the terms and conditions')
-    .optional(),
+    .refine((val) => val === true, 'You must accept the terms and conditions'),
 });
 
 export const verifyEmailSchema = z.object({
