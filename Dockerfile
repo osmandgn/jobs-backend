@@ -45,6 +45,8 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 
+RUN mkdir -p /app/logs && chown -R nodejs:nodejs /app/logs
+
 USER nodejs
 
 EXPOSE 3000
