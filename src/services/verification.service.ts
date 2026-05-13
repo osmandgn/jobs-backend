@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { prisma } from '../config/database';
 import { VerificationType } from '@prisma/client';
 import logger from '../utils/logger';
@@ -9,9 +10,7 @@ const PASSWORD_RESET_EXPIRY_MINUTES = 60;
 
 export class VerificationService {
   generateCode(): string {
-    // Generate a 6-digit numeric code
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    return code;
+    return crypto.randomInt(100000, 999999).toString();
   }
 
   private getExpiryMinutes(type: VerificationType): number {

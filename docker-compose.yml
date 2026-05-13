@@ -13,12 +13,12 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/gighub?schema=public
-      - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=dev-jwt-secret-change-in-production
-      - JWT_REFRESH_SECRET=dev-refresh-secret-change-in-production
-      - RESEND_API_KEY=re_5bjUjquT_CwVswv6fav11yus1xFA2sJg3
-      - RESEND_FROM_EMAIL=onboarding@resend.dev
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/gighub?schema=public
+      - REDIS_URL=redis://default:${REDIS_PASSWORD:-redispass}@redis:6379
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-change-in-production}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-dev-refresh-secret-change-in-production}
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL:-onboarding@resend.dev}
       - RESEND_FROM_NAME=GigHub UK
       - CORS_ORIGINS=http://localhost:3000,http://localhost:4000,http://localhost:8081
     depends_on:
@@ -33,11 +33,9 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: gighub-postgres
-    ports:
-      - '5432:5432'
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - POSTGRES_DB=gighub
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -52,16 +50,14 @@ services:
   redis:
     image: redis:7-alpine
     container_name: gighub-redis
-    ports:
-      - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD:-redispass}', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redispass}
     networks:
       - gighub-network
 
