@@ -107,11 +107,12 @@ class UploadService {
    * Get the public URL for an S3 object
    */
   private getPublicUrl(key: string): string {
-    // MinIO/self-hosted S3 compatible storage
+    if (config.aws.s3PublicUrl) {
+      return `${config.aws.s3PublicUrl}/${key}`;
+    }
     if (this.endpoint) {
       return `${this.endpoint}/${this.bucket}/${key}`;
     }
-    // AWS S3
     return `https://${this.bucket}.s3.${this.region}.amazonaws.com/${key}`;
   }
 
