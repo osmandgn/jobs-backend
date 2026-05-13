@@ -200,9 +200,10 @@ export class UploadController {
         contentType
       );
 
-      // Build public URL - handle both AWS S3 and S3-compatible storage (MinIO)
       let publicUrl: string;
-      if (config.aws.s3Endpoint) {
+      if (config.aws.s3PublicUrl) {
+        publicUrl = `${config.aws.s3PublicUrl}/${result.key}`;
+      } else if (config.aws.s3Endpoint) {
         publicUrl = `${config.aws.s3Endpoint}/${config.aws.s3Bucket}/${result.key}`;
       } else {
         publicUrl = `https://${config.aws.s3Bucket}.s3.${config.aws.region}.amazonaws.com/${result.key}`;
@@ -253,9 +254,10 @@ export class UploadController {
       const currentProfile = await userService.getProfile(userId);
       const oldPhotoUrl = currentProfile.profilePhotoUrl;
 
-      // Construct public URL
       let publicUrl: string;
-      if (config.aws.s3Endpoint) {
+      if (config.aws.s3PublicUrl) {
+        publicUrl = `${config.aws.s3PublicUrl}/${key}`;
+      } else if (config.aws.s3Endpoint) {
         publicUrl = `${config.aws.s3Endpoint}/${config.aws.s3Bucket}/${key}`;
       } else {
         publicUrl = `https://${config.aws.s3Bucket}.s3.${config.aws.region}.amazonaws.com/${key}`;
@@ -327,9 +329,10 @@ export class UploadController {
 
       const oldImageUrl = item.imageUrl;
 
-      // Construct public URL
       let publicUrl: string;
-      if (config.aws.s3Endpoint) {
+      if (config.aws.s3PublicUrl) {
+        publicUrl = `${config.aws.s3PublicUrl}/${key}`;
+      } else if (config.aws.s3Endpoint) {
         publicUrl = `${config.aws.s3Endpoint}/${config.aws.s3Bucket}/${key}`;
       } else {
         publicUrl = `https://${config.aws.s3Bucket}.s3.${config.aws.region}.amazonaws.com/${key}`;

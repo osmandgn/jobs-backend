@@ -25,6 +25,7 @@ interface Config {
     region: string;
     s3Bucket: string;
     s3Endpoint?: string;
+    s3PublicUrl?: string;
   };
   firebase: {
     projectId: string;
@@ -92,6 +93,7 @@ export const config: Config = {
     region: process.env.AWS_REGION || 'eu-west-2',
     s3Bucket: process.env.S3_BUCKET || '',
     s3Endpoint: process.env.S3_ENDPOINT || undefined,
+    s3PublicUrl: process.env.S3_PUBLIC_URL || undefined,
   },
   firebase: {
     projectId: process.env.FIREBASE_PROJECT_ID || '',
