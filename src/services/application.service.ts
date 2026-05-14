@@ -18,6 +18,7 @@ import type {
 
 export interface ApplicationListItem {
   id: string;
+  jobId: string;
   message: string;
   status: ApplicationStatus;
   employerRead: boolean;
@@ -244,6 +245,7 @@ class ApplicationService {
 
     const applicationList: ApplicationListItem[] = applications.map((app) => ({
       id: app.id,
+      jobId: app.jobId,
       message: app.message,
       status: app.status,
       employerRead: app.employerRead,
@@ -345,6 +347,7 @@ class ApplicationService {
 
     const applicationList: ApplicationListItem[] = applications.map((app) => ({
       id: app.id,
+      jobId: app.jobId,
       message: app.message,
       status: app.status,
       employerRead: app.employerRead,
@@ -615,6 +618,7 @@ class ApplicationService {
   private formatApplicationDetail(
     application: {
       id: string;
+      jobId: string;
       message: string;
       status: ApplicationStatus;
       employerRead: boolean;
@@ -646,6 +650,7 @@ class ApplicationService {
   ): ApplicationDetail {
     return {
       id: application.id,
+      jobId: application.jobId,
       message: application.message,
       status: application.status,
       employerRead: application.employerRead,
