@@ -11,6 +11,7 @@ import { cacheService } from './cache.service';
 import { cacheKeys } from '../utils/cacheKeys';
 import logger from '../utils/logger';
 import { settingsService } from './settings.service';
+import { onApplicationReceived, onApplicationAccepted } from './notificationTrigger.service';
 import type {
   ApplyToJobInput,
   GetApplicationsQuery,
@@ -194,7 +195,9 @@ class ApplicationService {
 
     logger.info(`Application created: ${result.application.id} for job: ${jobId}`);
 
-    // TODO: Trigger notification to employer
+    const applicant = result.application.applicant;
+    const applicantName = `${applicant.firstName} ${applicant.lastName}`;
+    onApplicationReceived(result.application, result.application.job, applicantName).catch(() => {});
 
     return this.formatApplicationDetail(result.application, result.conversation.id);
   }
@@ -524,7 +527,9 @@ class ApplicationService {
       `Application ${applicationId} status updated to ${status} by employer ${userId}`
     );
 
-    // TODO: Trigger notification to applicant
+    if (status === 'accepted') {
+      onApplicationAccepted(result, result.job).catch(() => {});
+    }
 
     const conversation = await prisma.conversation.findFirst({
       where: {
