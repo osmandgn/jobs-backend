@@ -14,6 +14,7 @@ import {
 } from './cleanup.job';
 import { sendJobReminders } from './jobReminder.job';
 import { sendDailyDigest, sendWeeklyDigest } from './notificationDigest.job';
+import { runHealthCheck } from './healthAlert.job';
 
 interface ScheduledTask {
   name: string;
@@ -26,6 +27,16 @@ interface ScheduledTask {
 const TIMEZONE = 'Europe/London';
 
 const scheduledTasks: ScheduledTask[] = [
+  // Every 5 minutes
+  {
+    name: 'health-check-alert',
+    schedule: '*/5 * * * *',
+    handler: async () => {
+      await runHealthCheck();
+    },
+    enabled: true,
+  },
+
   // Hourly tasks
   {
     name: 'expire-old-jobs',
