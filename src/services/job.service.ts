@@ -18,7 +18,7 @@ const OWNER_STATUS_TRANSITIONS: Record<JobStatus, JobStatus[]> = {
   pending_review: [],
   active: ['paused', 'filled', 'expired'],
   paused: ['active', 'expired'],
-  filled: ['completed'],
+  filled: ['completed', 'expired'],
   completed: [],
   expired: [],
   rejected: ['draft'],
