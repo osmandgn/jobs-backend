@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/jwt';
 import { tokenService } from '../services/token.service';
-import { UnauthorizedError, ErrorCodes } from '../utils/AppError';
+import { getRedisClient } from '../config/redis';
+import { prisma } from '../config/database';
+import { UnauthorizedError, ForbiddenError, ErrorCodes } from '../utils/AppError';
 
 export async function authMiddleware(
   req: Request,
@@ -38,6 +40,27 @@ export async function authMiddleware(
 
     // Verify token
     const payload = verifyAccessToken(token);
+
+    // Check user status (cached in Redis for 60s to reduce DB load)
+    const redis = getRedisClient();
+    const statusCacheKey = `user:status:${payload.userId}`;
+    let userStatus = await redis.get(statusCacheKey);
+
+    if (!userStatus) {
+      const user = await prisma.user.findUnique({
+        where: { id: payload.userId },
+        select: { status: true },
+      });
+      if (!user) {
+        throw new UnauthorizedError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
+      }
+      userStatus = user.status;
+      await redis.setex(statusCacheKey, 60, userStatus);
+    }
+
+    if (userStatus === 'suspended' || userStatus === 'banned' || userStatus === 'deleted') {
+      throw new ForbiddenError('Your account has been ' + userStatus, ErrorCodes.FORBIDDEN);
+    }
 
     // Attach user to request
     req.user = {

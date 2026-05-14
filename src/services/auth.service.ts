@@ -201,11 +201,16 @@ export class AuthService {
     return true;
   }
 
-  async resetPassword(code: string, newPassword: string): Promise<boolean> {
-    // Find the code first to get the user
+  async resetPassword(email: string, code: string, newPassword: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      throw new BadRequestError('Invalid or expired reset code', ErrorCodes.AUTH_INVALID_CREDENTIALS);
+    }
+
     const verificationCode = await prisma.verificationCode.findFirst({
       where: {
         code,
+        userId: user.id,
         type: 'password_reset',
         used: false,
         expiresAt: { gt: new Date() },

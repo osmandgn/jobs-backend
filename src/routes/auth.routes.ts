@@ -8,6 +8,8 @@ import {
   resendLimiter,
   authLimiter,
   forgotPasswordLimiter,
+  resetPasswordLimiter,
+  refreshLimiter,
 } from '../middlewares/rateLimiter';
 import {
   registerSchema,
@@ -219,6 +221,7 @@ router.post(
  */
 router.post(
   '/refresh',
+  refreshLimiter,
   validateBody(refreshTokenSchema),
   authController.refresh.bind(authController)
 );
@@ -286,6 +289,7 @@ router.post(
  */
 router.post(
   '/reset-password',
+  resetPasswordLimiter,
   validateBody(resetPasswordSchema),
   authController.resetPassword.bind(authController)
 );
@@ -542,6 +546,7 @@ router.post(
 router.post(
   '/change-password',
   authMiddleware,
+  authLimiter,
   validateBody(changePasswordSchema),
   authController.changePassword.bind(authController)
 );

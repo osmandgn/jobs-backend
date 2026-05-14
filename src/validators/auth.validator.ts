@@ -16,6 +16,7 @@ export const registerSchema = z.object({
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be at most 128 characters')
     .regex(
       passwordRegex,
       'Password must contain at least one uppercase letter and one number'
@@ -69,10 +70,12 @@ export const forgotPasswordSchema = z.object({
 });
 
 export const resetPasswordSchema = z.object({
+  email: z.string().email('Invalid email format').toLowerCase().trim(),
   code: z.string().length(6, 'Reset code must be 6 digits'),
   newPassword: z
     .string()
     .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be at most 128 characters')
     .regex(
       passwordRegex,
       'Password must contain at least one uppercase letter and one number'
@@ -80,10 +83,11 @@ export const resetPasswordSchema = z.object({
 });
 
 export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
+  currentPassword: z.string().min(1, 'Current password is required').max(128),
   newPassword: z
     .string()
     .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be at most 128 characters')
     .regex(
       passwordRegex,
       'Password must contain at least one uppercase letter and one number'

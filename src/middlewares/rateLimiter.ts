@@ -133,6 +133,18 @@ export const forgotPasswordLimiter = createRateLimiter({
   prefix: 'rl:forgot',
 });
 
+export const resetPasswordLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  prefix: 'rl:reset-password',
+});
+
+export const refreshLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  prefix: 'rl:refresh',
+});
+
 export const applicationLimiter = createRateLimiter({
   windowMs: 60 * 60 * 1000,
   max: 10,
