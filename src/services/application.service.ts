@@ -10,6 +10,7 @@ import {
 import { cacheService } from './cache.service';
 import { cacheKeys } from '../utils/cacheKeys';
 import logger from '../utils/logger';
+import { settingsService } from './settings.service';
 import type {
   ApplyToJobInput,
   GetApplicationsQuery,
@@ -94,6 +95,23 @@ class ApplicationService {
       if (job.jobDate < today) {
         throw new BadRequestError('This job has expired', ErrorCodes.JOB_EXPIRED);
       }
+    }
+
+    // Check daily application limit
+    const maxPerDay = await settingsService.getSetting<number>('max_applications_per_day');
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayCount = await prisma.application.count({
+      where: {
+        applicantId,
+        createdAt: { gte: todayStart },
+      },
+    });
+    if (todayCount >= maxPerDay) {
+      throw new BadRequestError(
+        `You have reached the daily application limit of ${maxPerDay}. Please try again tomorrow.`,
+        ErrorCodes.RATE_LIMIT_EXCEEDED
+      );
     }
 
     // Check not own job

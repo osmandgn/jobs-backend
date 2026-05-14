@@ -10,6 +10,7 @@ import { setupSwagger } from './config/swagger';
 import { requestIdMiddleware } from './middlewares/requestId';
 import { generalLimiter } from './middlewares/rateLimiter';
 import { requestMetricsMiddleware } from './middlewares/requestMetrics.middleware';
+import { maintenanceMiddleware } from './middlewares/maintenance.middleware';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import logger from './utils/logger';
 import { captureLog } from './services/monitoring/logsService';
@@ -96,6 +97,9 @@ app.use(`/api/${config.apiVersion}`, generalLimiter);
 
 // Request metrics (for monitoring)
 app.use(requestMetricsMiddleware);
+
+// Maintenance mode check (blocks non-essential routes when enabled)
+app.use(`/api/${config.apiVersion}`, maintenanceMiddleware);
 
 // Request logging
 app.use((req, res, next) => {

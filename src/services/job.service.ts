@@ -163,8 +163,8 @@ class JobService {
       }
     }
 
-    // Get system settings - jobs always require approval now
     const expiryDays = await this.getSystemSetting('job_expiry_days', '7');
+    const requiresApproval = await this.getSystemSetting('job_requires_approval', 'true');
 
     // Calculate expiry date if jobDate is provided
     let expiresAt: Date | null = null;
@@ -175,8 +175,7 @@ class JobService {
       expiresAt.setDate(expiresAt.getDate() + parseInt(expiryDays, 10));
     }
 
-    // All new jobs start as pending_review for admin approval
-    const initialStatus: JobStatus = 'pending_review';
+    const initialStatus: JobStatus = requiresApproval === 'true' ? 'pending_review' : 'active';
 
     // Create job with transaction
     const job = await prisma.$transaction(async (tx) => {
