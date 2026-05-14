@@ -208,7 +208,7 @@ class ConversationService {
     });
 
     if (!conversation) {
-      throw new NotFoundError('Konuşma bulunamadı', ErrorCodes.CONVERSATION_NOT_FOUND);
+      throw new NotFoundError('Conversation not found', ErrorCodes.CONVERSATION_NOT_FOUND);
     }
 
     // Check user is participant
@@ -217,7 +217,7 @@ class ConversationService {
 
     if (!isEmployer && !isApplicant) {
       throw new ForbiddenError(
-        'Bu konuşmayı görüntüleme yetkiniz yok',
+        'You do not have permission to view this conversation',
         ErrorCodes.FORBIDDEN
       );
     }
@@ -225,7 +225,7 @@ class ConversationService {
     // Check not soft-deleted for this user
     if ((isEmployer && conversation.isEmployerDeleted) ||
         (isApplicant && conversation.isApplicantDeleted)) {
-      throw new NotFoundError('Konuşma bulunamadı', ErrorCodes.CONVERSATION_NOT_FOUND);
+      throw new NotFoundError('Conversation not found', ErrorCodes.CONVERSATION_NOT_FOUND);
     }
 
     // Get application info
@@ -288,7 +288,7 @@ class ConversationService {
     });
 
     if (!conversation) {
-      throw new NotFoundError('Konuşma bulunamadı', ErrorCodes.CONVERSATION_NOT_FOUND);
+      throw new NotFoundError('Conversation not found', ErrorCodes.CONVERSATION_NOT_FOUND);
     }
 
     const isEmployer = conversation.employerId === userId;
@@ -296,7 +296,7 @@ class ConversationService {
 
     if (!isEmployer && !isApplicant) {
       throw new ForbiddenError(
-        'Bu konuşmayı silme yetkiniz yok',
+        'You do not have permission to delete this conversation',
         ErrorCodes.FORBIDDEN
       );
     }

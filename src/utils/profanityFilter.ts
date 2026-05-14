@@ -129,7 +129,7 @@ export function checkProfanity(text: string): ProfanityCheckResult {
     isClean: foundWords.length === 0,
     foundWords,
     message: foundWords.length > 0
-      ? 'Yorumunuz uygunsuz içerik barındırıyor. Lütfen düzenleyiniz.'
+      ? 'Your comment contains inappropriate content. Please revise it.'
       : undefined,
   };
 }

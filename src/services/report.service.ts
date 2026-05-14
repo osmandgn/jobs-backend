@@ -36,7 +36,7 @@ class ReportService {
     // Can't report yourself
     if (type === 'user' && targetId === reporterId) {
       throw new BadRequestError(
-        'Kendinizi raporlayamazsınız',
+        'You cannot report yourself',
         ErrorCodes.BAD_REQUEST
       );
     }
@@ -49,7 +49,7 @@ class ReportService {
       });
 
       if (!user || user.status === 'deleted') {
-        throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.USER_NOT_FOUND);
+        throw new NotFoundError('User not found', ErrorCodes.USER_NOT_FOUND);
       }
     } else {
       const job = await prisma.job.findUnique({
@@ -58,7 +58,7 @@ class ReportService {
       });
 
       if (!job) {
-        throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.JOB_NOT_FOUND);
+        throw new NotFoundError('Job not found', ErrorCodes.JOB_NOT_FOUND);
       }
     }
 
@@ -77,7 +77,7 @@ class ReportService {
 
     if (existingReport) {
       throw new BadRequestError(
-        'Bu hedefi son 24 saat içinde zaten raporladınız',
+        'You have already reported this target within the last 24 hours',
         ErrorCodes.REPORT_DUPLICATE
       );
     }

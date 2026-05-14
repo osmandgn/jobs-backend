@@ -127,7 +127,7 @@ class JobService {
     });
 
     if (!category || !category.isActive) {
-      throw new BadRequestError('Geçersiz kategori', ErrorCodes.BAD_REQUEST);
+      throw new BadRequestError('Invalid category', ErrorCodes.BAD_REQUEST);
     }
 
     // Validate skills if provided
@@ -137,7 +137,7 @@ class JobService {
       });
 
       if (skills.length !== data.requiredSkillIds.length) {
-        throw new BadRequestError('Bazı beceriler bulunamadı', ErrorCodes.BAD_REQUEST);
+        throw new BadRequestError('Some skills were not found', ErrorCodes.BAD_REQUEST);
       }
     }
 
@@ -146,7 +146,7 @@ class JobService {
       const maxImages = await this.getSystemSetting('max_images_per_job', '5');
       if (data.imageUrls.length > parseInt(maxImages, 10)) {
         throw new BadRequestError(
-          `En fazla ${maxImages} fotoğraf yükleyebilirsiniz`,
+          `You can upload a maximum of ${maxImages} photos`,
           ErrorCodes.BAD_REQUEST
         );
       }
@@ -159,7 +159,7 @@ class JobService {
     if (!isRemote && data.locationPostcode) {
       coords = await this.geocodePostcode(data.locationPostcode);
       if (!coords) {
-        throw new BadRequestError('Geçersiz posta kodu', ErrorCodes.VALIDATION_INVALID_POSTCODE);
+        throw new BadRequestError('Invalid postcode', ErrorCodes.VALIDATION_INVALID_POSTCODE);
       }
     }
 
@@ -245,18 +245,18 @@ class JobService {
     });
 
     if (!job) {
-      throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.JOB_NOT_FOUND);
+      throw new NotFoundError('Job not found', ErrorCodes.JOB_NOT_FOUND);
     }
 
     // Check ownership
     if (job.userId !== userId) {
-      throw new ForbiddenError('Bu iş ilanını düzenleme yetkiniz yok', ErrorCodes.FORBIDDEN);
+      throw new ForbiddenError('You do not have permission to edit this job', ErrorCodes.FORBIDDEN);
     }
 
     // Check if job is editable
     if (!EDITABLE_STATUSES.includes(job.status)) {
       throw new BadRequestError(
-        `Bu statüdeki iş ilanı düzenlenemez: ${job.status}`,
+        `Job cannot be edited in ${job.status} status`,
         ErrorCodes.JOB_NOT_ACTIVE
       );
     }
@@ -268,7 +268,7 @@ class JobService {
       });
 
       if (!category || !category.isActive) {
-        throw new BadRequestError('Geçersiz kategori', ErrorCodes.BAD_REQUEST);
+        throw new BadRequestError('Invalid category', ErrorCodes.BAD_REQUEST);
       }
     }
 
@@ -279,7 +279,7 @@ class JobService {
       });
 
       if (skills.length !== data.requiredSkillIds.length) {
-        throw new BadRequestError('Bazı beceriler bulunamadı', ErrorCodes.BAD_REQUEST);
+        throw new BadRequestError('Some skills were not found', ErrorCodes.BAD_REQUEST);
       }
     }
 
@@ -288,7 +288,7 @@ class JobService {
       const maxImages = await this.getSystemSetting('max_images_per_job', '5');
       if (data.imageUrls.length > parseInt(maxImages, 10)) {
         throw new BadRequestError(
-          `En fazla ${maxImages} fotoğraf yükleyebilirsiniz`,
+          `You can upload a maximum of ${maxImages} photos`,
           ErrorCodes.BAD_REQUEST
         );
       }
@@ -299,7 +299,7 @@ class JobService {
     if (data.locationPostcode && data.locationPostcode !== job.locationPostcode) {
       coords = await this.geocodePostcode(data.locationPostcode);
       if (!coords) {
-        throw new BadRequestError('Geçersiz posta kodu', ErrorCodes.VALIDATION_INVALID_POSTCODE);
+        throw new BadRequestError('Invalid postcode', ErrorCodes.VALIDATION_INVALID_POSTCODE);
       }
     }
 
@@ -429,7 +429,7 @@ class JobService {
       });
 
       if (!dbJob) {
-        throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.JOB_NOT_FOUND);
+        throw new NotFoundError('Job not found', ErrorCodes.JOB_NOT_FOUND);
       }
 
       // Get employer stats
@@ -856,19 +856,19 @@ class JobService {
     });
 
     if (!job) {
-      throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.JOB_NOT_FOUND);
+      throw new NotFoundError('Job not found', ErrorCodes.JOB_NOT_FOUND);
     }
 
     // Check ownership
     if (job.userId !== userId) {
-      throw new ForbiddenError('Bu iş ilanını değiştirme yetkiniz yok', ErrorCodes.FORBIDDEN);
+      throw new ForbiddenError('You do not have permission to modify this job', ErrorCodes.FORBIDDEN);
     }
 
     // Check transition is allowed
     const allowedTransitions = OWNER_STATUS_TRANSITIONS[job.status];
     if (!allowedTransitions.includes(newStatus)) {
       throw new BadRequestError(
-        `${job.status} statüsünden ${newStatus} statüsüne geçiş yapılamaz`,
+        `Cannot transition from ${job.status} to ${newStatus}`,
         ErrorCodes.BAD_REQUEST
       );
     }
@@ -903,12 +903,12 @@ class JobService {
     });
 
     if (!job) {
-      throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.JOB_NOT_FOUND);
+      throw new NotFoundError('Job not found', ErrorCodes.JOB_NOT_FOUND);
     }
 
     // Check ownership
     if (job.userId !== userId) {
-      throw new ForbiddenError('Bu iş ilanını silme yetkiniz yok', ErrorCodes.FORBIDDEN);
+      throw new ForbiddenError('You do not have permission to delete this job', ErrorCodes.FORBIDDEN);
     }
 
     // Soft delete - change status to expired
@@ -932,7 +932,7 @@ class JobService {
     });
 
     if (!job) {
-      throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.JOB_NOT_FOUND);
+      throw new NotFoundError('Job not found', ErrorCodes.JOB_NOT_FOUND);
     }
 
     if (job.status !== 'active') {
@@ -940,7 +940,7 @@ class JobService {
     }
 
     if (job.userId === userId) {
-      throw new BadRequestError('Kendi ilanınızı kaydedemezsiniz', ErrorCodes.BAD_REQUEST);
+      throw new BadRequestError('You cannot save your own job', ErrorCodes.BAD_REQUEST);
     }
 
     await prisma.savedJob.upsert({

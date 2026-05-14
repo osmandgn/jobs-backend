@@ -105,12 +105,12 @@ class ReviewService {
     });
 
     if (!job) {
-      return { eligible: false, reason: 'İş bulunamadı' };
+      return { eligible: false, reason: 'Job not found' };
     }
 
     // Job must be completed
     if (job.status !== 'completed') {
-      return { eligible: false, reason: 'İş henüz tamamlanmamış' };
+      return { eligible: false, reason: 'Job has not been completed yet' };
     }
 
     const isEmployer = job.userId === userId;
@@ -127,14 +127,14 @@ class ReviewService {
     });
 
     if (!acceptedApplication) {
-      return { eligible: false, reason: 'Kabul edilen başvuru bulunamadı' };
+      return { eligible: false, reason: 'No accepted application found' };
     }
 
     const isWorker = acceptedApplication.applicantId === userId;
 
     // User must be either employer or accepted worker
     if (!isEmployer && !isWorker) {
-      return { eligible: false, reason: 'Bu işi değerlendirme yetkiniz yok' };
+      return { eligible: false, reason: 'You do not have permission to review this job' };
     }
 
     // Determine review direction
@@ -161,7 +161,7 @@ class ReviewService {
     });
 
     if (existingReview) {
-      return { eligible: false, reason: 'Bu işi zaten değerlendirdiniz' };
+      return { eligible: false, reason: 'You have already reviewed this job' };
     }
 
     // Check review window
@@ -173,7 +173,7 @@ class ReviewService {
     if (new Date() > windowEnd) {
       return {
         eligible: false,
-        reason: `Değerlendirme süresi dolmuş (${reviewWindowDays} gün)`,
+        reason: `Review period has expired (${reviewWindowDays} days)`,
       };
     }
 
@@ -199,7 +199,7 @@ class ReviewService {
 
     if (!eligibility.eligible) {
       throw new BadRequestError(
-        eligibility.reason || 'Bu işi değerlendirme yetkiniz yok',
+        eligibility.reason || 'You do not have permission to review this job',
         ErrorCodes.REVIEW_NOT_ELIGIBLE
       );
     }
@@ -207,7 +207,7 @@ class ReviewService {
     // Check profanity in comment
     if (comment && containsProfanity(comment)) {
       throw new BadRequestError(
-        'Yorumunuz uygunsuz içerik barındırıyor',
+        'Your comment contains inappropriate content',
         ErrorCodes.VALIDATION_FAILED
       );
     }
@@ -550,13 +550,13 @@ class ReviewService {
     });
 
     if (!review) {
-      throw new NotFoundError('Değerlendirme bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Review not found', ErrorCodes.NOT_FOUND);
     }
 
     // User must be the reviewee (the one who received the review)
     if (review.revieweeId !== userId) {
       throw new ForbiddenError(
-        'Sadece size yapılan değerlendirmeleri raporlayabilirsiniz',
+        'You can only report reviews about yourself',
         ErrorCodes.FORBIDDEN
       );
     }
@@ -572,7 +572,7 @@ class ReviewService {
 
     if (existingReport) {
       throw new BadRequestError(
-        'Bu değerlendirmeyi zaten raporladınız',
+        'You have already reported this review',
         ErrorCodes.REPORT_DUPLICATE
       );
     }

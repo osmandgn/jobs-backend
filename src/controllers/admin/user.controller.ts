@@ -68,7 +68,7 @@ class AdminUserController {
 
       if (!status && !role) {
         throw new ValidationError(
-          'En az bir alan güncellenmeli: status veya role',
+          'At least one field must be updated: status or role',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -77,7 +77,7 @@ class AdminUserController {
       const validStatuses: UserStatus[] = ['active', 'suspended', 'banned'];
       if (status && !validStatuses.includes(status)) {
         throw new ValidationError(
-          'Geçersiz durum: active, suspended veya banned olmalı',
+          'Invalid status. Must be: active, suspended, or banned',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -86,7 +86,7 @@ class AdminUserController {
       const validRoles: UserRole[] = ['user', 'admin'];
       if (role && !validRoles.includes(role)) {
         throw new ValidationError(
-          'Geçersiz rol: user veya admin olmalı',
+          'Invalid role. Must be: user or admin',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -98,7 +98,7 @@ class AdminUserController {
         req.ip
       );
 
-      sendSuccess(res, { message: 'Kullanıcı güncellendi' });
+      sendSuccess(res, { message: 'User updated' });
     } catch (error) {
       next(error);
     }
@@ -114,12 +114,12 @@ class AdminUserController {
       const { reason, durationDays } = req.body;
 
       if (!reason) {
-        throw new ValidationError('Sebep belirtilmeli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Reason is required', ErrorCodes.VALIDATION_FAILED);
       }
 
       await adminService.suspendUser(adminId, userId, reason, durationDays, req.ip);
 
-      sendSuccess(res, { message: 'Kullanıcı askıya alındı' });
+      sendSuccess(res, { message: 'User suspended' });
     } catch (error) {
       next(error);
     }
@@ -135,7 +135,7 @@ class AdminUserController {
 
       await adminService.unsuspendUser(adminId, userId, req.ip);
 
-      sendSuccess(res, { message: 'Kullanıcı askı durumu kaldırıldı' });
+      sendSuccess(res, { message: 'User unsuspended' });
     } catch (error) {
       next(error);
     }
@@ -151,12 +151,12 @@ class AdminUserController {
       const { reason } = req.body;
 
       if (!reason) {
-        throw new ValidationError('Sebep belirtilmeli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Reason is required', ErrorCodes.VALIDATION_FAILED);
       }
 
       await adminService.banUser(adminId, userId, reason, req.ip);
 
-      sendSuccess(res, { message: 'Kullanıcı yasaklandı' });
+      sendSuccess(res, { message: 'User banned' });
     } catch (error) {
       next(error);
     }

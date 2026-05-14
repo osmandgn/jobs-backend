@@ -20,7 +20,7 @@ export interface UpdateTokenInput {
 export async function registerDevice(input: RegisterDeviceInput): Promise<void> {
   const { userId, token, platform, deviceName } = input;
 
-  // Upsert: varsa güncelle, yoksa oluştur
+  // Upsert: update if exists, create if not
   await prisma.deviceToken.upsert({
     where: { token },
     update: {
@@ -77,7 +77,7 @@ export async function updateDeviceToken(input: UpdateTokenInput): Promise<boolea
     return false;
   }
 
-  // Eski token'ı yeni token ile güncelle
+  // Update old token with new token
   await prisma.deviceToken.update({
     where: { token: oldToken },
     data: {

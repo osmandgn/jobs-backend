@@ -4,19 +4,19 @@ import { z } from 'zod';
 export const sendMessageSchema = z.object({
   content: z
     .string()
-    .min(1, { message: 'Mesaj boş olamaz' })
-    .max(2000, { message: 'Mesaj en fazla 2000 karakter olabilir' })
+    .min(1, { message: 'Message cannot be empty' })
+    .max(2000, { message: 'Message must be at most 2000 characters' })
     .trim(),
 });
 
 // Conversation ID param schema
 export const conversationIdSchema = z.object({
-  id: z.string().uuid({ message: 'Geçersiz conversation ID' }),
+  id: z.string().uuid({ message: 'Invalid conversation ID' }),
 });
 
 // Message ID param schema
 export const messageIdSchema = z.object({
-  messageId: z.string().uuid({ message: 'Geçersiz message ID' }),
+  messageId: z.string().uuid({ message: 'Invalid message ID' }),
 });
 
 // Get messages query schema

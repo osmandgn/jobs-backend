@@ -44,7 +44,7 @@ class AdminSettingsController {
       const setting = await settingsService.getSettingDetail(key!);
 
       if (!setting) {
-        throw new NotFoundError(`Ayar bulunamadı: ${key}`, ErrorCodes.NOT_FOUND);
+        throw new NotFoundError(`Setting not found: ${key}`, ErrorCodes.NOT_FOUND);
       }
 
       sendSuccess(res, setting);
@@ -63,7 +63,7 @@ class AdminSettingsController {
       const adminId = req.user!.userId;
 
       if (value === undefined || value === null) {
-        throw new ValidationError('Değer belirtilmeli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Value is required', ErrorCodes.VALIDATION_FAILED);
       }
 
       // Convert value to string for storage
@@ -82,7 +82,7 @@ class AdminSettingsController {
       });
 
       sendSuccess(res, {
-        message: 'Ayar güncellendi',
+        message: 'Setting updated',
         setting,
       });
     } catch (error) {
@@ -109,7 +109,7 @@ class AdminSettingsController {
         ipAddress: req.ip,
       });
 
-      sendSuccess(res, { message: 'Ayarlar önbelleği yenilendi' });
+      sendSuccess(res, { message: 'Settings cache reloaded' });
     } catch (error) {
       next(error);
     }
@@ -134,7 +134,7 @@ class AdminSettingsController {
         ipAddress: req.ip,
       });
 
-      sendSuccess(res, { message: 'Varsayılan ayarlar başlatıldı' });
+      sendSuccess(res, { message: 'Default settings initialised' });
     } catch (error) {
       next(error);
     }
@@ -167,7 +167,7 @@ class AdminSettingsController {
 
       if (typeof enabled !== 'boolean') {
         throw new ValidationError(
-          'enabled alanı boolean olmalı',
+          'enabled field must be a boolean',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -191,7 +191,7 @@ class AdminSettingsController {
       });
 
       sendSuccess(res, {
-        message: enabled ? 'Bakım modu etkinleştirildi' : 'Bakım modu devre dışı bırakıldı',
+        message: enabled ? 'Maintenance mode enabled' : 'Maintenance mode disabled',
         maintenanceMode: enabled,
       });
     } catch (error) {

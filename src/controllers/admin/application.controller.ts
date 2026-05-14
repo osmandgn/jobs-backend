@@ -37,7 +37,7 @@ class AdminApplicationController {
       const application = await adminService.getApplicationById(applicationId);
 
       if (!application) {
-        throw new NotFoundError('Başvuru bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Application not found', ErrorCodes.NOT_FOUND);
       }
 
       sendSuccess(res, application);

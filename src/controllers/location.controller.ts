@@ -10,11 +10,11 @@ const postcodeParamSchema = z.object({
 });
 
 const searchQuerySchema = z.object({
-  q: z.string().min(2, 'Arama terimi en az 2 karakter olmalıdır'),
+  q: z.string().min(2, 'Search term must be at least 2 characters'),
 });
 
 const autocompleteQuerySchema = z.object({
-  partial: z.string().min(2, 'En az 2 karakter giriniz'),
+  partial: z.string().min(2, 'Please enter at least 2 characters'),
 });
 
 const reverseGeocodeQuerySchema = z.object({
@@ -35,7 +35,7 @@ class LocationController {
 
       if (!result.valid) {
         throw new BadRequestError(
-          result.error || 'Geçersiz postcode',
+          result.error || 'Invalid postcode',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -61,7 +61,7 @@ class LocationController {
 
       if (!result) {
         throw new BadRequestError(
-          'Postcode bulunamadı',
+          'Postcode not found',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -128,7 +128,7 @@ class LocationController {
 
       if (!result) {
         throw new BadRequestError(
-          'Bu konuma yakın postcode bulunamadı',
+          'No postcode found near this location',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -159,7 +159,7 @@ class LocationController {
 
       if (!result) {
         throw new BadRequestError(
-          'Postcode için koordinatlar bulunamadı',
+          'Coordinates not found for this postcode',
           ErrorCodes.VALIDATION_FAILED
         );
       }

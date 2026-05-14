@@ -261,7 +261,7 @@ class CategoryService {
 
     // Check if slug already exists
     if (input.slug && (await this.slugExists(slug))) {
-      throw new BadRequestError('Bu slug zaten kullanımda', ErrorCodes.VALIDATION_FAILED);
+      throw new BadRequestError('This slug is already in use', ErrorCodes.VALIDATION_FAILED);
     }
 
     // Validate parent exists if provided
@@ -270,7 +270,7 @@ class CategoryService {
         where: { id: input.parentId },
       });
       if (!parent) {
-        throw new NotFoundError('Üst kategori bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Parent category not found', ErrorCodes.NOT_FOUND);
       }
     }
 
@@ -301,7 +301,7 @@ class CategoryService {
     });
 
     if (!existing) {
-      throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
     }
 
     // Handle slug update
@@ -309,7 +309,7 @@ class CategoryService {
     if (input.slug && input.slug !== existing.slug) {
       slug = slugify(input.slug);
       if (await this.slugExists(slug, id)) {
-        throw new BadRequestError('Bu slug zaten kullanımda', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('This slug is already in use', ErrorCodes.VALIDATION_FAILED);
       }
     } else if (input.name && input.name !== existing.name && !input.slug) {
       // Auto-update slug if name changes and slug not explicitly set
@@ -322,7 +322,7 @@ class CategoryService {
         // Can't set parent to self
         if (input.parentId === id) {
           throw new BadRequestError(
-            'Kategori kendisinin üst kategorisi olamaz',
+            'A category cannot be its own parent',
             ErrorCodes.VALIDATION_FAILED
           );
         }
@@ -331,13 +331,13 @@ class CategoryService {
           where: { id: input.parentId },
         });
         if (!parent) {
-          throw new NotFoundError('Üst kategori bulunamadı', ErrorCodes.NOT_FOUND);
+          throw new NotFoundError('Parent category not found', ErrorCodes.NOT_FOUND);
         }
         // Prevent circular reference
         const isDescendant = await this.isDescendant(input.parentId, id);
         if (isDescendant) {
           throw new BadRequestError(
-            'Döngüsel referans oluşturulamaz',
+            'Circular reference is not allowed',
             ErrorCodes.VALIDATION_FAILED
           );
         }
@@ -401,13 +401,13 @@ class CategoryService {
     });
 
     if (!category) {
-      throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
     }
 
     // Check if category has jobs
     if (category._count.jobs > 0) {
       throw new BadRequestError(
-        `Bu kategoride ${category._count.jobs} iş ilanı bulunuyor. Önce ilanları taşıyın veya silin.`,
+        `This category has ${category._count.jobs} job listings. Please move or delete them first.`,
         ErrorCodes.VALIDATION_FAILED
       );
     }
@@ -415,7 +415,7 @@ class CategoryService {
     // Check if category has children
     if (category._count.children > 0) {
       throw new BadRequestError(
-        `Bu kategorinin ${category._count.children} alt kategorisi bulunuyor. Önce alt kategorileri silin.`,
+        `This category has ${category._count.children} subcategories. Please delete them first.`,
         ErrorCodes.VALIDATION_FAILED
       );
     }
@@ -423,7 +423,7 @@ class CategoryService {
     // Check if category has skills
     if (category._count.skills > 0) {
       throw new BadRequestError(
-        `Bu kategoride ${category._count.skills} beceri tanımlı. Önce becerileri silin veya taşıyın.`,
+        `This category has ${category._count.skills} skills defined. Please delete or move them first.`,
         ErrorCodes.VALIDATION_FAILED
       );
     }
@@ -462,7 +462,7 @@ class CategoryService {
     });
 
     if (!category) {
-      throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
     }
 
     const updated = await prisma.category.update({
@@ -485,7 +485,7 @@ class CategoryService {
     });
 
     if (!category) {
-      throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
     }
 
     const updated = await prisma.category.update({

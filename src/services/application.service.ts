@@ -79,12 +79,12 @@ class ApplicationService {
     });
 
     if (!job) {
-      throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.JOB_NOT_FOUND);
+      throw new NotFoundError('Job not found', ErrorCodes.JOB_NOT_FOUND);
     }
 
     // Check job status
     if (job.status !== 'active') {
-      throw new BadRequestError('Bu iş ilanı aktif değil', ErrorCodes.JOB_NOT_ACTIVE);
+      throw new BadRequestError('This job is not active', ErrorCodes.JOB_NOT_ACTIVE);
     }
 
     // Check job date not passed (only if jobDate is set)
@@ -92,14 +92,14 @@ class ApplicationService {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (job.jobDate < today) {
-        throw new BadRequestError('Bu iş ilanının tarihi geçmiş', ErrorCodes.JOB_EXPIRED);
+        throw new BadRequestError('This job has expired', ErrorCodes.JOB_EXPIRED);
       }
     }
 
     // Check not own job
     if (job.userId === applicantId) {
       throw new BadRequestError(
-        'Kendi iş ilanınıza başvuramazsınız',
+        'You cannot apply to your own job',
         ErrorCodes.JOB_CANNOT_APPLY_OWN
       );
     }
@@ -112,7 +112,7 @@ class ApplicationService {
     });
 
     if (existingApplication) {
-      throw new ConflictError('Bu ilana zaten başvurdunuz', ErrorCodes.JOB_ALREADY_APPLIED);
+      throw new ConflictError('You have already applied to this job', ErrorCodes.JOB_ALREADY_APPLIED);
     }
 
     // Check not blocked by employer
@@ -126,7 +126,7 @@ class ApplicationService {
     });
 
     if (isBlocked) {
-      throw new ForbiddenError('Bu işverene başvuru yapamazsınız', ErrorCodes.USER_BLOCKED);
+      throw new ForbiddenError('You cannot apply to this employer', ErrorCodes.USER_BLOCKED);
     }
 
     // Create application and conversation in transaction
@@ -269,12 +269,12 @@ class ApplicationService {
     });
 
     if (!job) {
-      throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.JOB_NOT_FOUND);
+      throw new NotFoundError('Job not found', ErrorCodes.JOB_NOT_FOUND);
     }
 
     if (job.userId !== userId) {
       throw new ForbiddenError(
-        'Bu iş ilanının başvurularını görüntüleme yetkiniz yok',
+        'You do not have permission to view applications for this job',
         ErrorCodes.FORBIDDEN
       );
     }
@@ -379,7 +379,7 @@ class ApplicationService {
     });
 
     if (!application) {
-      throw new NotFoundError('Başvuru bulunamadı', ErrorCodes.APPLICATION_NOT_FOUND);
+      throw new NotFoundError('Application not found', ErrorCodes.APPLICATION_NOT_FOUND);
     }
 
     // Check access
@@ -387,7 +387,7 @@ class ApplicationService {
     const isEmployer = application.job.userId === userId;
 
     if (!isApplicant && !isEmployer) {
-      throw new ForbiddenError('Bu başvuruyu görüntüleme yetkiniz yok', ErrorCodes.FORBIDDEN);
+      throw new ForbiddenError('You do not have permission to view this application', ErrorCodes.FORBIDDEN);
     }
 
     // Mark as read if employer viewing
@@ -434,13 +434,13 @@ class ApplicationService {
     });
 
     if (!application) {
-      throw new NotFoundError('Başvuru bulunamadı', ErrorCodes.APPLICATION_NOT_FOUND);
+      throw new NotFoundError('Application not found', ErrorCodes.APPLICATION_NOT_FOUND);
     }
 
     // Check job ownership
     if (application.job.userId !== userId) {
       throw new ForbiddenError(
-        'Bu başvurunun durumunu değiştirme yetkiniz yok',
+        'You do not have permission to change this application status',
         ErrorCodes.FORBIDDEN
       );
     }
@@ -448,7 +448,7 @@ class ApplicationService {
     // Check current status is pending
     if (application.status !== 'pending') {
       throw new BadRequestError(
-        'Sadece bekleyen başvuruların durumu değiştirilebilir',
+        'Only pending applications can have their status changed',
         ErrorCodes.APPLICATION_NOT_PENDING
       );
     }
@@ -531,18 +531,18 @@ class ApplicationService {
     });
 
     if (!application) {
-      throw new NotFoundError('Başvuru bulunamadı', ErrorCodes.APPLICATION_NOT_FOUND);
+      throw new NotFoundError('Application not found', ErrorCodes.APPLICATION_NOT_FOUND);
     }
 
     // Check ownership
     if (application.applicantId !== userId) {
-      throw new ForbiddenError('Bu başvuruyu geri çekme yetkiniz yok', ErrorCodes.FORBIDDEN);
+      throw new ForbiddenError('You do not have permission to withdraw this application', ErrorCodes.FORBIDDEN);
     }
 
     // Check status is pending
     if (application.status !== 'pending') {
       throw new BadRequestError(
-        'Sadece bekleyen başvurular geri çekilebilir',
+        'Only pending applications can be withdrawn',
         ErrorCodes.APPLICATION_NOT_PENDING
       );
     }
