@@ -55,7 +55,7 @@ class AdminReportController {
 
       if (!status && adminNotes === undefined) {
         throw new ValidationError(
-          'En az bir alan güncellenmeli: status veya adminNotes',
+          'At least one field must be updated: status or adminNotes',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -65,7 +65,7 @@ class AdminReportController {
         const validStatuses = ['pending', 'investigating', 'resolved', 'dismissed'];
         if (!validStatuses.includes(status)) {
           throw new ValidationError(
-            `Geçersiz durum. Geçerli değerler: ${validStatuses.join(', ')}`,
+            `Invalid status. Valid values: ${validStatuses.join(', ')}`,
             ErrorCodes.VALIDATION_FAILED
           );
         }
@@ -73,7 +73,7 @@ class AdminReportController {
 
       await adminService.updateReport(adminId, reportId, { status, adminNotes }, req.ip);
 
-      sendSuccess(res, { message: 'Rapor güncellendi' });
+      sendSuccess(res, { message: 'Report updated' });
     } catch (error) {
       next(error);
     }
@@ -89,13 +89,13 @@ class AdminReportController {
       const { action, reason } = req.body;
 
       if (!action) {
-        throw new ValidationError('Aksiyon belirtilmeli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Action is required', ErrorCodes.VALIDATION_FAILED);
       }
 
       const validActions = ['warn', 'suspend', 'ban', 'remove_job', 'dismiss'];
       if (!validActions.includes(action)) {
         throw new ValidationError(
-          `Geçersiz aksiyon. Geçerli değerler: ${validActions.join(', ')}`,
+          `Invalid action. Valid values: ${validActions.join(', ')}`,
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -108,7 +108,7 @@ class AdminReportController {
         req.ip
       );
 
-      sendSuccess(res, { message: 'Aksiyon uygulandı' });
+      sendSuccess(res, { message: 'Action applied' });
     } catch (error) {
       next(error);
     }
@@ -124,21 +124,21 @@ class AdminReportController {
 
       if (!reportIds || !Array.isArray(reportIds) || reportIds.length === 0) {
         throw new ValidationError(
-          'En az bir rapor ID\'si gerekli',
+          'At least one report ID is required',
           ErrorCodes.VALIDATION_FAILED
         );
       }
 
       if (reportIds.length > 50) {
         throw new ValidationError(
-          'Maksimum 50 rapor toplu çözümlenebilir',
+          'A maximum of 50 reports can be bulk resolved',
           ErrorCodes.VALIDATION_FAILED
         );
       }
 
       if (!status || !['resolved', 'dismissed'].includes(status)) {
         throw new ValidationError(
-          'Geçerli durum belirtilmeli: resolved veya dismissed',
+          'Valid status is required: resolved or dismissed',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -146,7 +146,7 @@ class AdminReportController {
       const result = await adminService.bulkResolveReports(adminId, reportIds, status, req.ip);
 
       sendSuccess(res, {
-        message: `${result.resolved} rapor çözümlendi, ${result.failed} rapor başarısız`,
+        message: `${result.resolved} reports resolved, ${result.failed} failed`,
         ...result,
       });
     } catch (error) {

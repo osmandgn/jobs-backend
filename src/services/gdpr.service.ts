@@ -171,7 +171,7 @@ export async function exportUserData(userId: string): Promise<ExportData> {
   });
 
   if (!user) {
-    throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.USER_NOT_FOUND);
+    throw new NotFoundError('User not found', ErrorCodes.USER_NOT_FOUND);
   }
 
   // Compile export data
@@ -277,12 +277,12 @@ export async function requestAccountDeletion(
   });
 
   if (!user) {
-    throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.USER_NOT_FOUND);
+    throw new NotFoundError('User not found', ErrorCodes.USER_NOT_FOUND);
   }
 
   if (user.status === 'pending_deletion') {
     throw new ForbiddenError(
-      'Hesap zaten silme sürecinde',
+      'Account is already pending deletion',
       ErrorCodes.FORBIDDEN
     );
   }
@@ -339,7 +339,7 @@ export async function cancelAccountDeletion(userId: string): Promise<void> {
 
   if (!request) {
     throw new NotFoundError(
-      'Silme talebi bulunamadı',
+      'Deletion request not found',
       ErrorCodes.NOT_FOUND
     );
   }
@@ -517,7 +517,7 @@ export async function deleteUserData(userId: string): Promise<void> {
     await tx.review.updateMany({
       where: { reviewerId: userId },
       data: {
-        comment: '[Silinen kullanıcı]',
+        comment: '[Deleted user]',
       },
     });
 
@@ -545,8 +545,8 @@ export async function deleteUserData(userId: string): Promise<void> {
       where: { id: userId },
       data: {
         email: `deleted_${userId}@deleted.local`,
-        firstName: 'Silinen',
-        lastName: 'Kullanıcı',
+        firstName: 'Deleted',
+        lastName: 'User',
         phone: null,
         bio: null,
         profilePhotoUrl: null,
@@ -620,7 +620,7 @@ export async function getUserConsent(
   });
 
   if (!user) {
-    throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.USER_NOT_FOUND);
+    throw new NotFoundError('User not found', ErrorCodes.USER_NOT_FOUND);
   }
 
   return {

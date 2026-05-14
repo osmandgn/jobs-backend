@@ -23,7 +23,7 @@ class ReportController {
 
       const result = await reportService.createReport(userId, input);
 
-      sendCreated(res, result, 'Raporunuz başarıyla oluşturuldu');
+      sendCreated(res, result, 'Your report has been submitted successfully');
     } catch (error) {
       next(error);
     }
@@ -58,7 +58,7 @@ class ReportController {
       const report = await reportService.getReportById(userId, id);
 
       if (!report) {
-        throw new NotFoundError('Rapor bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Report not found', ErrorCodes.NOT_FOUND);
       }
 
       sendSuccess(res, report);
@@ -79,7 +79,7 @@ class ReportController {
 
       await blockService.blockUser(blockerId, blockedId, input);
 
-      sendCreated(res, { blockedId }, 'Kullanıcı engellendi');
+      sendCreated(res, { blockedId }, 'User blocked');
     } catch (error) {
       next(error);
     }

@@ -57,7 +57,7 @@ class AdminJobController {
 
       if (!status && !adminNotes) {
         throw new ValidationError(
-          'En az bir alan güncellenmeli: status veya adminNotes',
+          'At least one field must be updated: status or adminNotes',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -76,7 +76,7 @@ class AdminJobController {
         ];
         if (!validStatuses.includes(status)) {
           throw new ValidationError(
-            `Geçersiz durum. Geçerli değerler: ${validStatuses.join(', ')}`,
+            `Invalid status. Valid values: ${validStatuses.join(', ')}`,
             ErrorCodes.VALIDATION_FAILED
           );
         }
@@ -89,7 +89,7 @@ class AdminJobController {
         req.ip
       );
 
-      sendSuccess(res, { message: 'İş ilanı güncellendi' });
+      sendSuccess(res, { message: 'Job updated' });
     } catch (error) {
       next(error);
     }
@@ -105,7 +105,7 @@ class AdminJobController {
 
       await adminService.approveJob(adminId, jobId, req.ip);
 
-      sendSuccess(res, { message: 'İş ilanı onaylandı' });
+      sendSuccess(res, { message: 'Job approved' });
     } catch (error) {
       next(error);
     }
@@ -121,12 +121,12 @@ class AdminJobController {
       const { reason } = req.body;
 
       if (!reason) {
-        throw new ValidationError('Red sebebi belirtilmeli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Rejection reason is required', ErrorCodes.VALIDATION_FAILED);
       }
 
       await adminService.rejectJob(adminId, jobId, reason, req.ip);
 
-      sendSuccess(res, { message: 'İş ilanı reddedildi' });
+      sendSuccess(res, { message: 'Job rejected' });
     } catch (error) {
       next(error);
     }
@@ -142,7 +142,7 @@ class AdminJobController {
       const { reason } = req.body;
 
       if (!reason) {
-        throw new ValidationError('Silme sebebi belirtilmeli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Deletion reason is required', ErrorCodes.VALIDATION_FAILED);
       }
 
       await adminService.deleteJob(adminId, jobId, reason, req.ip);
@@ -163,14 +163,14 @@ class AdminJobController {
 
       if (!jobIds || !Array.isArray(jobIds) || jobIds.length === 0) {
         throw new ValidationError(
-          'En az bir iş ilanı ID\'si gerekli',
+          'At least one job ID is required',
           ErrorCodes.VALIDATION_FAILED
         );
       }
 
       if (jobIds.length > 50) {
         throw new ValidationError(
-          'Maksimum 50 ilan toplu onaylanabilir',
+          'A maximum of 50 jobs can be bulk approved',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -178,7 +178,7 @@ class AdminJobController {
       const result = await adminService.bulkApproveJobs(adminId, jobIds, req.ip);
 
       sendSuccess(res, {
-        message: `${result.approved} ilan onaylandı, ${result.failed} ilan başarısız`,
+        message: `${result.approved} jobs approved, ${result.failed} failed`,
         ...result,
       });
     } catch (error) {

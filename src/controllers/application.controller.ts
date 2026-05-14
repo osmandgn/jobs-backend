@@ -20,7 +20,7 @@ class ApplicationController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id: jobId } = jobIdSchema.parse(req.params);
@@ -28,7 +28,7 @@ class ApplicationController {
 
       const application = await applicationService.applyToJob(jobId, userId, validatedData);
 
-      sendCreated(res, application, 'Başvurunuz başarıyla gönderildi');
+      sendCreated(res, application, 'Your application has been submitted successfully');
     } catch (error) {
       next(error);
     }
@@ -42,7 +42,7 @@ class ApplicationController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const query = getApplicationsQuerySchema.parse(req.query);
@@ -66,7 +66,7 @@ class ApplicationController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = applicationIdSchema.parse(req.params);
@@ -86,7 +86,7 @@ class ApplicationController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id: jobId } = jobIdSchema.parse(req.params);
@@ -112,7 +112,7 @@ class ApplicationController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = applicationIdSchema.parse(req.params);
@@ -127,7 +127,7 @@ class ApplicationController {
       sendSuccess(
         res,
         application,
-        status === 'accepted' ? 'Başvuru kabul edildi' : 'Başvuru reddedildi'
+        status === 'accepted' ? 'Application accepted' : 'Application rejected'
       );
     } catch (error) {
       next(error);
@@ -142,7 +142,7 @@ class ApplicationController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = applicationIdSchema.parse(req.params);

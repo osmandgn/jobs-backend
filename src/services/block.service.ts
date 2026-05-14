@@ -59,7 +59,7 @@ class BlockService {
     // Can't block yourself
     if (blockerId === blockedId) {
       throw new BadRequestError(
-        'Kendinizi engelleyemezsiniz',
+        'You cannot block yourself',
         ErrorCodes.BAD_REQUEST
       );
     }
@@ -71,14 +71,14 @@ class BlockService {
     });
 
     if (!userExists || userExists.status === 'deleted') {
-      throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.USER_NOT_FOUND);
+      throw new NotFoundError('User not found', ErrorCodes.USER_NOT_FOUND);
     }
 
     // Check if already blocked
     const existingBlock = await this.isBlocked(blockerId, blockedId);
     if (existingBlock) {
       throw new BadRequestError(
-        'Bu kullanıcı zaten engellenmiş',
+        'This user is already blocked',
         ErrorCodes.USER_BLOCKED
       );
     }
@@ -110,7 +110,7 @@ class BlockService {
 
     if (!block) {
       throw new NotFoundError(
-        'Bu kullanıcı engellenmemiş',
+        'This user is not blocked',
         ErrorCodes.NOT_FOUND
       );
     }

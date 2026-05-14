@@ -22,7 +22,7 @@ class LegalController {
 
       if (!type || !VALID_DOCUMENT_TYPES.includes(type as LegalDocumentType)) {
         throw new ValidationError(
-          `Geçersiz belge türü. Geçerli türler: ${VALID_DOCUMENT_TYPES.join(', ')}`,
+          `Invalid document type. Valid types: ${VALID_DOCUMENT_TYPES.join(', ')}`,
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -44,7 +44,7 @@ class LegalController {
 
       if (!type || !VALID_DOCUMENT_TYPES.includes(type as LegalDocumentType)) {
         throw new ValidationError(
-          `Geçersiz belge türü. Geçerli türler: ${VALID_DOCUMENT_TYPES.join(', ')}`,
+          `Invalid document type. Valid types: ${VALID_DOCUMENT_TYPES.join(', ')}`,
           ErrorCodes.VALIDATION_FAILED
         );
       }

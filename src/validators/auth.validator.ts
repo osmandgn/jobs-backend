@@ -38,6 +38,10 @@ export const registerSchema = z.object({
   termsAccepted: z
     .boolean()
     .refine((val) => val === true, 'You must accept the terms and conditions'),
+  locationPostcode: z
+    .string()
+    .regex(/^[A-Z]{1,2}[0-9][0-9A-Z]?\s?[0-9][A-Z]{2}$/i, 'Please enter a valid UK postcode')
+    .optional(),
 });
 
 export const verifyEmailSchema = z.object({

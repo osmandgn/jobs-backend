@@ -58,7 +58,7 @@ class NotificationController {
       const success = await pushNotificationService.markAsRead(notificationId, userId);
 
       if (!success) {
-        throw new NotFoundError('Bildirim bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Notification not found', ErrorCodes.NOT_FOUND);
       }
 
       sendNoContent(res);
@@ -123,7 +123,7 @@ class NotificationController {
         const validFrequencies = ['instant', 'daily', 'weekly'];
         if (!validFrequencies.includes(updates.newJobEmailFrequency)) {
           throw new ValidationError(
-            'Geçersiz email frekansı. "instant", "daily" veya "weekly" olmalıdır',
+            'Invalid email frequency. Must be "instant", "daily", or "weekly"',
             ErrorCodes.VALIDATION_FAILED
           );
         }
@@ -150,7 +150,7 @@ class NotificationController {
       });
 
       if (result.count === 0) {
-        throw new NotFoundError('Bildirim bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Notification not found', ErrorCodes.NOT_FOUND);
       }
 
       sendNoContent(res);

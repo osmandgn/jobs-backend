@@ -4,17 +4,17 @@ import { z } from 'zod';
 export const createCategorySchema = z.object({
   name: z
     .string()
-    .min(2, 'Kategori adı en az 2 karakter olmalıdır')
-    .max(100, 'Kategori adı en fazla 100 karakter olabilir'),
+    .min(2, 'Category name must be at least 2 characters')
+    .max(100, 'Category name must be at most 100 characters'),
   slug: z
     .string()
-    .min(2, 'Slug en az 2 karakter olmalıdır')
-    .max(100, 'Slug en fazla 100 karakter olabilir')
-    .regex(/^[a-z0-9-]+$/, 'Slug sadece küçük harf, rakam ve tire içerebilir')
+    .min(2, 'Slug must be at least 2 characters')
+    .max(100, 'Slug must be at most 100 characters')
+    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens')
     .optional(),
-  icon: z.string().max(50, 'İkon adı en fazla 50 karakter olabilir').optional(),
-  description: z.string().max(500, 'Açıklama en fazla 500 karakter olabilir').optional(),
-  parentId: z.string().uuid('Geçersiz üst kategori ID').optional(),
+  icon: z.string().max(50, 'Icon name must be at most 50 characters').optional(),
+  description: z.string().max(500, 'Description must be at most 500 characters').optional(),
+  parentId: z.string().uuid('Invalid parent category ID').optional(),
   isActive: z.boolean().optional(),
   sortOrder: z.number().int().min(0).max(1000).optional(),
 });
@@ -23,18 +23,18 @@ export const createCategorySchema = z.object({
 export const updateCategorySchema = z.object({
   name: z
     .string()
-    .min(2, 'Kategori adı en az 2 karakter olmalıdır')
-    .max(100, 'Kategori adı en fazla 100 karakter olabilir')
+    .min(2, 'Category name must be at least 2 characters')
+    .max(100, 'Category name must be at most 100 characters')
     .optional(),
   slug: z
     .string()
-    .min(2, 'Slug en az 2 karakter olmalıdır')
-    .max(100, 'Slug en fazla 100 karakter olabilir')
-    .regex(/^[a-z0-9-]+$/, 'Slug sadece küçük harf, rakam ve tire içerebilir')
+    .min(2, 'Slug must be at least 2 characters')
+    .max(100, 'Slug must be at most 100 characters')
+    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens')
     .optional(),
-  icon: z.string().max(50, 'İkon adı en fazla 50 karakter olabilir').nullable().optional(),
-  description: z.string().max(500, 'Açıklama en fazla 500 karakter olabilir').nullable().optional(),
-  parentId: z.string().uuid('Geçersiz üst kategori ID').nullable().optional(),
+  icon: z.string().max(50, 'Icon name must be at most 50 characters').nullable().optional(),
+  description: z.string().max(500, 'Description must be at most 500 characters').nullable().optional(),
+  parentId: z.string().uuid('Invalid parent category ID').nullable().optional(),
   isActive: z.boolean().optional(),
   sortOrder: z.number().int().min(0).max(1000).optional(),
 });
@@ -44,21 +44,21 @@ export const reorderCategoriesSchema = z.object({
   items: z
     .array(
       z.object({
-        id: z.string().uuid('Geçersiz kategori ID'),
+        id: z.string().uuid('Invalid category ID'),
         sortOrder: z.number().int().min(0).max(1000),
       })
     )
-    .min(1, 'En az bir kategori gereklidir'),
+    .min(1, 'At least one category is required'),
 });
 
 // Category ID/Slug parameter
 export const categoryIdOrSlugSchema = z.object({
-  idOrSlug: z.string().min(1, 'Kategori ID veya slug gereklidir'),
+  idOrSlug: z.string().min(1, 'Category ID or slug is required'),
 });
 
 // Category ID parameter
 export const categoryIdSchema = z.object({
-  id: z.string().uuid('Geçersiz kategori ID'),
+  id: z.string().uuid('Invalid category ID'),
 });
 
 // Types

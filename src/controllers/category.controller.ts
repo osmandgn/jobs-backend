@@ -16,7 +16,7 @@ class CategoryController {
   async getCategoryTree(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const tree = await categoryService.getCategoryTree();
-      sendSuccess(res, tree, 'Kategoriler başarıyla getirildi');
+      sendSuccess(res, tree, 'Categories retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -29,7 +29,7 @@ class CategoryController {
   async getAllCategories(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const categories = await categoryService.getAllCategories();
-      sendSuccess(res, categories, 'Kategoriler başarıyla getirildi');
+      sendSuccess(res, categories, 'Categories retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -43,7 +43,7 @@ class CategoryController {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 10;
       const categories = await categoryService.getPopularCategories(limit);
-      sendSuccess(res, categories, 'Popüler kategoriler başarıyla getirildi');
+      sendSuccess(res, categories, 'Popular categories retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -57,15 +57,15 @@ class CategoryController {
     try {
       const { idOrSlug } = req.params;
       if (!idOrSlug) {
-        throw new BadRequestError('Kategori ID veya slug gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Category ID or slug is required', ErrorCodes.VALIDATION_FAILED);
       }
       const category = await categoryService.getCategoryByIdOrSlug(idOrSlug);
 
       if (!category) {
-        throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
       }
 
-      sendSuccess(res, category, 'Kategori başarıyla getirildi');
+      sendSuccess(res, category, 'Category retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -79,17 +79,17 @@ class CategoryController {
     try {
       const { idOrSlug } = req.params;
       if (!idOrSlug) {
-        throw new BadRequestError('Kategori ID veya slug gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Category ID or slug is required', ErrorCodes.VALIDATION_FAILED);
       }
 
       // First get the category to get its ID
       const category = await categoryService.getCategoryByIdOrSlug(idOrSlug);
       if (!category) {
-        throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
       }
 
       const subcategories = await categoryService.getSubcategories(category.id);
-      sendSuccess(res, subcategories, 'Alt kategoriler başarıyla getirildi');
+      sendSuccess(res, subcategories, 'Subcategories retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -104,7 +104,7 @@ class CategoryController {
   async getAllCategoriesAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const categories = await categoryService.getAllCategoriesAdmin();
-      sendSuccess(res, categories, 'Kategoriler başarıyla getirildi');
+      sendSuccess(res, categories, 'Categories retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -118,15 +118,15 @@ class CategoryController {
     try {
       const { id } = req.params;
       if (!id) {
-        throw new BadRequestError('Kategori ID gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Category ID is required', ErrorCodes.VALIDATION_FAILED);
       }
       const category = await categoryService.getCategoryByIdAdmin(id);
 
       if (!category) {
-        throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
       }
 
-      sendSuccess(res, category, 'Kategori başarıyla getirildi');
+      sendSuccess(res, category, 'Category retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -148,7 +148,7 @@ class CategoryController {
       }
 
       const category = await categoryService.createCategory(validation.data);
-      sendSuccess(res, category, 'Kategori başarıyla oluşturuldu', 201);
+      sendSuccess(res, category, 'Category created successfully', 201);
     } catch (error) {
       next(error);
     }
@@ -162,7 +162,7 @@ class CategoryController {
     try {
       const { id } = req.params;
       if (!id) {
-        throw new BadRequestError('Kategori ID gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Category ID is required', ErrorCodes.VALIDATION_FAILED);
       }
 
       const validation = updateCategorySchema.safeParse(req.body);
@@ -175,7 +175,7 @@ class CategoryController {
       }
 
       const category = await categoryService.updateCategory(id, validation.data);
-      sendSuccess(res, category, 'Kategori başarıyla güncellendi');
+      sendSuccess(res, category, 'Category updated successfully');
     } catch (error) {
       next(error);
     }
@@ -189,10 +189,10 @@ class CategoryController {
     try {
       const { id } = req.params;
       if (!id) {
-        throw new BadRequestError('Kategori ID gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Category ID is required', ErrorCodes.VALIDATION_FAILED);
       }
       await categoryService.deleteCategory(id);
-      sendSuccess(res, null, 'Kategori başarıyla silindi');
+      sendSuccess(res, null, 'Category deleted successfully');
     } catch (error) {
       next(error);
     }
@@ -214,7 +214,7 @@ class CategoryController {
       }
 
       await categoryService.reorderCategories(validation.data.items);
-      sendSuccess(res, null, 'Kategoriler başarıyla yeniden sıralandı');
+      sendSuccess(res, null, 'Categories reordered successfully');
     } catch (error) {
       next(error);
     }
@@ -228,10 +228,10 @@ class CategoryController {
     try {
       const { id } = req.params;
       if (!id) {
-        throw new BadRequestError('Kategori ID gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Category ID is required', ErrorCodes.VALIDATION_FAILED);
       }
       const category = await categoryService.deactivateCategory(id);
-      sendSuccess(res, category, 'Kategori başarıyla deaktif edildi');
+      sendSuccess(res, category, 'Category deactivated successfully');
     } catch (error) {
       next(error);
     }
@@ -245,10 +245,10 @@ class CategoryController {
     try {
       const { id } = req.params;
       if (!id) {
-        throw new BadRequestError('Kategori ID gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Category ID is required', ErrorCodes.VALIDATION_FAILED);
       }
       const category = await categoryService.activateCategory(id);
-      sendSuccess(res, category, 'Kategori başarıyla aktif edildi');
+      sendSuccess(res, category, 'Category activated successfully');
     } catch (error) {
       next(error);
     }

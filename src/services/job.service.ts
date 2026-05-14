@@ -824,7 +824,7 @@ class JobService {
 
     if (centerLat === undefined || centerLng === undefined) {
       throw new BadRequestError(
-        'Konum bilgisi gerekli. postcode veya lat/lng sağlayın.',
+        'Location required. Please provide a postcode or coordinates (lat, lng).',
         ErrorCodes.VALIDATION_INVALID_POSTCODE
       );
     }

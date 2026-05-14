@@ -1,30 +1,30 @@
 import { z } from 'zod';
 
 export const platformEnum = z.enum(['ios', 'android', 'web'], {
-  message: 'Platform "ios", "android" veya "web" olmalıdır',
+  message: 'Platform must be "ios", "android", or "web"',
 });
 
 export const registerDeviceSchema = z.object({
   token: z
-    .string({ message: 'FCM token gereklidir' })
-    .min(10, 'Geçerli bir FCM token giriniz'),
+    .string({ message: 'FCM token is required' })
+    .min(10, 'Please provide a valid FCM token'),
   platform: platformEnum,
-  deviceName: z.string().max(100, 'Cihaz adı en fazla 100 karakter olabilir').optional(),
+  deviceName: z.string().max(100, 'Device name must be at most 100 characters').optional(),
 });
 
 export const updateTokenSchema = z.object({
   oldToken: z
-    .string({ message: 'Eski token gereklidir' })
-    .min(10, 'Geçerli bir FCM token giriniz'),
+    .string({ message: 'Old token is required' })
+    .min(10, 'Please provide a valid FCM token'),
   newToken: z
-    .string({ message: 'Yeni token gereklidir' })
-    .min(10, 'Geçerli bir FCM token giriniz'),
+    .string({ message: 'New token is required' })
+    .min(10, 'Please provide a valid FCM token'),
 });
 
 export const removeDeviceSchema = z.object({
   token: z
-    .string({ message: 'FCM token gereklidir' })
-    .min(10, 'Geçerli bir FCM token giriniz'),
+    .string({ message: 'FCM token is required' })
+    .min(10, 'Please provide a valid FCM token'),
 });
 
 export type RegisterDeviceInput = z.infer<typeof registerDeviceSchema>;

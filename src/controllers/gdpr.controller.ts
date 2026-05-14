@@ -37,7 +37,7 @@ class GdprController {
       const request = await gdprService.requestAccountDeletion(userId, reason);
 
       sendSuccess(res, {
-        message: 'Hesap silme talebi alındı',
+        message: 'Account deletion request received',
         deletionRequest: {
           id: request.id,
           scheduledFor: request.scheduledFor,
@@ -59,7 +59,7 @@ class GdprController {
       await gdprService.cancelAccountDeletion(userId);
 
       sendSuccess(res, {
-        message: 'Hesap silme talebi iptal edildi',
+        message: 'Account deletion request cancelled',
       });
     } catch (error) {
       next(error);
@@ -114,7 +114,7 @@ class GdprController {
         thirdParty === undefined
       ) {
         throw new ValidationError(
-          'En az bir onay türü belirtilmeli',
+          'At least one consent type must be specified',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -122,19 +122,19 @@ class GdprController {
       // Validate types
       if (marketing !== undefined && typeof marketing !== 'boolean') {
         throw new ValidationError(
-          'marketing alanı boolean olmalı',
+          'marketing field must be a boolean',
           ErrorCodes.VALIDATION_FAILED
         );
       }
       if (analytics !== undefined && typeof analytics !== 'boolean') {
         throw new ValidationError(
-          'analytics alanı boolean olmalı',
+          'analytics field must be a boolean',
           ErrorCodes.VALIDATION_FAILED
         );
       }
       if (thirdParty !== undefined && typeof thirdParty !== 'boolean') {
         throw new ValidationError(
-          'thirdParty alanı boolean olmalı',
+          'thirdParty field must be a boolean',
           ErrorCodes.VALIDATION_FAILED
         );
       }
@@ -146,7 +146,7 @@ class GdprController {
       });
 
       sendSuccess(res, {
-        message: 'Onay tercihleri güncellendi',
+        message: 'Consent preferences updated',
       });
     } catch (error) {
       next(error);

@@ -187,7 +187,7 @@ export async function getRecentActivity(limit: number = 20): Promise<RecentActiv
   recentUsers.forEach((user) => {
     activities.push({
       type: 'user_registered',
-      message: `${user.firstName} ${user.lastName} kayıt oldu`,
+      message: `${user.firstName} ${user.lastName} registered`,
       timestamp: user.createdAt,
       data: { userId: user.id },
     });
@@ -196,7 +196,7 @@ export async function getRecentActivity(limit: number = 20): Promise<RecentActiv
   recentJobs.forEach((job) => {
     activities.push({
       type: 'job_created',
-      message: `${job.user.firstName} "${job.title}" iş ilanı oluşturdu`,
+      message: `${job.user.firstName} created job listing "${job.title}"`,
       timestamp: job.createdAt,
       data: { jobId: job.id },
     });
@@ -205,7 +205,7 @@ export async function getRecentActivity(limit: number = 20): Promise<RecentActiv
   recentApplications.forEach((app) => {
     activities.push({
       type: 'application_received',
-      message: `${app.applicant.firstName} "${app.job.title}" ilanına başvurdu`,
+      message: `${app.applicant.firstName} applied to "${app.job.title}"`,
       timestamp: app.createdAt,
       data: { applicationId: app.id },
     });
@@ -214,7 +214,7 @@ export async function getRecentActivity(limit: number = 20): Promise<RecentActiv
   recentReports.forEach((report) => {
     activities.push({
       type: 'report_created',
-      message: `Yeni rapor: ${report.reason}`,
+      message: `New report: ${report.reason}`,
       timestamp: report.createdAt,
       data: { reportId: report.id },
     });
@@ -464,7 +464,7 @@ export async function getUserById(userId: string): Promise<{
   });
 
   if (!user) {
-    throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('User not found', ErrorCodes.NOT_FOUND);
   }
 
   const [recentJobs, recentApplications, recentReviews, reportsAgainstUser, adminLogs] =
@@ -572,7 +572,7 @@ export async function updateUser(
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user) {
-    throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('User not found', ErrorCodes.NOT_FOUND);
   }
 
   const updateData: { status?: UserStatus; role?: UserRole } = {};
@@ -604,19 +604,19 @@ export async function suspendUser(
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user) {
-    throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('User not found', ErrorCodes.NOT_FOUND);
   }
 
   if (user.status === 'suspended') {
     throw new ValidationError(
-      'Kullanıcı zaten askıya alınmış',
+      'User is already suspended',
       ErrorCodes.VALIDATION_FAILED
     );
   }
 
   if (user.role === 'admin') {
     throw new ValidationError(
-      'Admin kullanıcılar askıya alınamaz',
+      'Admin users cannot be suspended',
       ErrorCodes.VALIDATION_FAILED
     );
   }
@@ -650,19 +650,19 @@ export async function banUser(
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user) {
-    throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('User not found', ErrorCodes.NOT_FOUND);
   }
 
   if (user.status === 'banned') {
     throw new ValidationError(
-      'Kullanıcı zaten yasaklanmış',
+      'User is already banned',
       ErrorCodes.VALIDATION_FAILED
     );
   }
 
   if (user.role === 'admin') {
     throw new ValidationError(
-      'Admin kullanıcılar yasaklanamaz',
+      'Admin users cannot be banned',
       ErrorCodes.VALIDATION_FAILED
     );
   }
@@ -695,12 +695,12 @@ export async function unsuspendUser(
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user) {
-    throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('User not found', ErrorCodes.NOT_FOUND);
   }
 
   if (user.status !== 'suspended') {
     throw new ValidationError(
-      'Kullanıcı askıya alınmış değil',
+      'User is not suspended',
       ErrorCodes.VALIDATION_FAILED
     );
   }
@@ -731,12 +731,12 @@ export async function deleteUser(
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user) {
-    throw new NotFoundError('Kullanıcı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('User not found', ErrorCodes.NOT_FOUND);
   }
 
   if (user.role === 'admin') {
     throw new ValidationError(
-      'Admin kullanıcılar silinemez',
+      'Admin users cannot be deleted',
       ErrorCodes.VALIDATION_FAILED
     );
   }
@@ -909,7 +909,7 @@ export async function getJobById(adminId: string, jobId: string): Promise<{
   });
 
   if (!job) {
-    throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('Job not found', ErrorCodes.NOT_FOUND);
   }
 
   const [applications, reports, adminLogs] = await Promise.all([
@@ -989,7 +989,7 @@ export async function updateJob(
   const job = await prisma.job.findUnique({ where: { id: jobId } });
 
   if (!job) {
-    throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('Job not found', ErrorCodes.NOT_FOUND);
   }
 
   const updateData: { status?: JobStatus; adminNotes?: string } = {};
@@ -1019,12 +1019,12 @@ export async function approveJob(
   const job = await prisma.job.findUnique({ where: { id: jobId } });
 
   if (!job) {
-    throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('Job not found', ErrorCodes.NOT_FOUND);
   }
 
   if (job.status !== 'pending_review') {
     throw new ValidationError(
-      'Sadece bekleyen ilanlar onaylanabilir',
+      'Only pending jobs can be approved',
       ErrorCodes.VALIDATION_FAILED
     );
   }
@@ -1058,12 +1058,12 @@ export async function rejectJob(
   });
 
   if (!job) {
-    throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('Job not found', ErrorCodes.NOT_FOUND);
   }
 
   if (job.status !== 'pending_review') {
     throw new ValidationError(
-      'Sadece bekleyen ilanlar reddedilebilir',
+      'Only pending jobs can be rejected',
       ErrorCodes.VALIDATION_FAILED
     );
   }
@@ -1097,7 +1097,7 @@ export async function deleteJob(
   const job = await prisma.job.findUnique({ where: { id: jobId } });
 
   if (!job) {
-    throw new NotFoundError('İş ilanı bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('Job not found', ErrorCodes.NOT_FOUND);
   }
 
   // Soft delete by changing status
@@ -1455,7 +1455,7 @@ export async function getReportById(
   });
 
   if (!report) {
-    throw new NotFoundError('Rapor bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('Report not found', ErrorCodes.NOT_FOUND);
   }
 
   // Mark as investigating if pending
@@ -1523,7 +1523,7 @@ export async function updateReport(
   const report = await prisma.report.findUnique({ where: { id: reportId } });
 
   if (!report) {
-    throw new NotFoundError('Rapor bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('Report not found', ErrorCodes.NOT_FOUND);
   }
 
   const updateData: Record<string, unknown> = {
@@ -1574,13 +1574,13 @@ export async function takeReportAction(
   });
 
   if (!report) {
-    throw new NotFoundError('Rapor bulunamadı', ErrorCodes.NOT_FOUND);
+    throw new NotFoundError('Report not found', ErrorCodes.NOT_FOUND);
   }
 
   switch (action) {
     case 'warn':
       if (!report.reportedUserId) {
-        throw new ValidationError('Uyarı sadece kullanıcı raporları için geçerli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Warning is only applicable to user reports', ErrorCodes.VALIDATION_FAILED);
       }
       // Send warning email (would integrate with email service)
       logger.info(`Warning sent to user ${report.reportedUserId}`, { reason });
@@ -1588,23 +1588,23 @@ export async function takeReportAction(
 
     case 'suspend':
       if (!report.reportedUserId) {
-        throw new ValidationError('Askıya alma sadece kullanıcı raporları için geçerli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Suspension is only applicable to user reports', ErrorCodes.VALIDATION_FAILED);
       }
-      await suspendUser(adminId, report.reportedUserId, reason || 'Rapor nedeniyle askıya alındı', undefined, ipAddress);
+      await suspendUser(adminId, report.reportedUserId, reason || 'Suspended due to report', undefined, ipAddress);
       break;
 
     case 'ban':
       if (!report.reportedUserId) {
-        throw new ValidationError('Yasaklama sadece kullanıcı raporları için geçerli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Ban is only applicable to user reports', ErrorCodes.VALIDATION_FAILED);
       }
-      await banUser(adminId, report.reportedUserId, reason || 'Rapor nedeniyle yasaklandı', ipAddress);
+      await banUser(adminId, report.reportedUserId, reason || 'Banned due to report', ipAddress);
       break;
 
     case 'remove_job':
       if (!report.reportedJobId) {
-        throw new ValidationError('İlan kaldırma sadece iş ilanı raporları için geçerli', ErrorCodes.VALIDATION_FAILED);
+        throw new ValidationError('Job removal is only applicable to job reports', ErrorCodes.VALIDATION_FAILED);
       }
-      await deleteJob(adminId, report.reportedJobId, reason || 'Rapor nedeniyle kaldırıldı', ipAddress);
+      await deleteJob(adminId, report.reportedJobId, reason || 'Removed due to report', ipAddress);
       break;
 
     case 'dismiss':
@@ -1612,7 +1612,7 @@ export async function takeReportAction(
       break;
 
     default:
-      throw new ValidationError('Geçersiz aksiyon', ErrorCodes.VALIDATION_FAILED);
+      throw new ValidationError('Invalid action', ErrorCodes.VALIDATION_FAILED);
   }
 
   // Update report status
@@ -1623,8 +1623,8 @@ export async function takeReportAction(
       resolvedAt: new Date(),
       adminId,
       adminNotes: report.adminNotes
-        ? `${report.adminNotes}\n\nAksiyon: ${action}${reason ? ` - ${reason}` : ''}`
-        : `Aksiyon: ${action}${reason ? ` - ${reason}` : ''}`,
+        ? `${report.adminNotes}\n\nAction: ${action}${reason ? ` - ${reason}` : ''}`
+        : `Action: ${action}${reason ? ` - ${reason}` : ''}`,
     },
   });
 

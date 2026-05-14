@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // Report types
 export const reportTypeEnum = z.enum(['user', 'job'], {
-  message: 'Rapor tipi "user" veya "job" olmalıdır',
+  message: 'Report type must be "user" or "job"',
 });
 
 // Report reasons
@@ -15,22 +15,22 @@ export const reportReasonEnum = z.enum([
   'misleading',
   'other',
 ], {
-  message: 'Geçersiz rapor sebebi',
+  message: 'Invalid report reason',
 });
 
 // Create report schema
 export const createReportSchema = z.object({
   type: reportTypeEnum,
-  targetId: z.string().uuid({ message: 'Geçersiz hedef ID' }),
+  targetId: z.string().uuid({ message: 'Invalid target ID' }),
   reason: reportReasonEnum,
   description: z
     .string()
-    .max(1000, { message: 'Açıklama en fazla 1000 karakter olabilir' })
+    .max(1000, { message: 'Description must be at most 1000 characters' })
     .trim()
     .optional(),
   evidenceUrls: z
-    .array(z.string().url({ message: 'Geçersiz URL' }))
-    .max(5, { message: 'En fazla 5 kanıt URL\'i eklenebilir' })
+    .array(z.string().url({ message: 'Invalid URL' }))
+    .max(5, { message: 'A maximum of 5 evidence URLs can be added' })
     .optional(),
 });
 
@@ -49,7 +49,7 @@ export type GetReportsQuery = z.infer<typeof getReportsQuerySchema>;
 export const blockUserSchema = z.object({
   reason: z
     .string()
-    .max(500, { message: 'Sebep en fazla 500 karakter olabilir' })
+    .max(500, { message: 'Reason must be at most 500 characters' })
     .trim()
     .optional(),
 });
@@ -58,7 +58,7 @@ export type BlockUserInput = z.infer<typeof blockUserSchema>;
 
 // User ID param schema
 export const userIdParamSchema = z.object({
-  id: z.string().uuid({ message: 'Geçersiz kullanıcı ID' }),
+  id: z.string().uuid({ message: 'Invalid user ID' }),
 });
 
 // Get blocked users query schema

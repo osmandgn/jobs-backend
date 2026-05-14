@@ -232,7 +232,7 @@ class SkillService {
     });
 
     if (!category) {
-      throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
     }
 
     // Generate slug if not provided
@@ -242,7 +242,7 @@ class SkillService {
 
     // Check if slug already exists
     if (input.slug && (await this.slugExists(slug))) {
-      throw new BadRequestError('Bu slug zaten kullanımda', ErrorCodes.VALIDATION_FAILED);
+      throw new BadRequestError('This slug is already in use', ErrorCodes.VALIDATION_FAILED);
     }
 
     const skill = await prisma.skill.create({
@@ -268,7 +268,7 @@ class SkillService {
     });
 
     if (!existing) {
-      throw new NotFoundError('Beceri bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Skill not found', ErrorCodes.NOT_FOUND);
     }
 
     // Validate category if changing
@@ -278,7 +278,7 @@ class SkillService {
       });
 
       if (!category) {
-        throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
       }
     }
 
@@ -287,7 +287,7 @@ class SkillService {
     if (input.slug && input.slug !== existing.slug) {
       slug = slugify(input.slug);
       if (await this.slugExists(slug, id)) {
-        throw new BadRequestError('Bu slug zaten kullanımda', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('This slug is already in use', ErrorCodes.VALIDATION_FAILED);
       }
     } else if (input.name && input.name !== existing.name && !input.slug) {
       // Auto-update slug if name changes and slug not explicitly set
@@ -326,13 +326,13 @@ class SkillService {
     });
 
     if (!skill) {
-      throw new NotFoundError('Beceri bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Skill not found', ErrorCodes.NOT_FOUND);
     }
 
     // Check if skill is used by users
     if (skill._count.userSkills > 0) {
       throw new BadRequestError(
-        `Bu beceri ${skill._count.userSkills} kullanıcı tarafından kullanılıyor. Önce kullanıcılardan kaldırın.`,
+        `This skill is used by ${skill._count.userSkills} users. Please remove it from users first.`,
         ErrorCodes.VALIDATION_FAILED
       );
     }
@@ -340,7 +340,7 @@ class SkillService {
     // Check if skill is used by jobs
     if (skill._count.jobRequiredSkills > 0) {
       throw new BadRequestError(
-        `Bu beceri ${skill._count.jobRequiredSkills} iş ilanında kullanılıyor. Önce ilanlardan kaldırın.`,
+        `This skill is used in ${skill._count.jobRequiredSkills} job listings. Please remove it from jobs first.`,
         ErrorCodes.VALIDATION_FAILED
       );
     }
@@ -366,7 +366,7 @@ class SkillService {
     });
 
     if (!category) {
-      throw new NotFoundError('Kategori bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Category not found', ErrorCodes.NOT_FOUND);
     }
 
     const skipped: string[] = [];
@@ -413,7 +413,7 @@ class SkillService {
     });
 
     if (!category) {
-      throw new NotFoundError('Hedef kategori bulunamadı', ErrorCodes.NOT_FOUND);
+      throw new NotFoundError('Target category not found', ErrorCodes.NOT_FOUND);
     }
 
     const result = await prisma.skill.updateMany({

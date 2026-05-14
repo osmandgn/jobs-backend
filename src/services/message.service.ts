@@ -110,7 +110,7 @@ class MessageService {
 
     if (!otherParty || otherParty.status !== 'active') {
       throw new BadRequestError(
-        'Bu kullanıcıya mesaj gönderemezsiniz',
+        'You cannot send messages to this user',
         ErrorCodes.MESSAGE_RECIPIENT_NOT_AVAILABLE
       );
     }
@@ -127,7 +127,7 @@ class MessageService {
 
     if (isBlocked) {
       throw new ForbiddenError(
-        'Bu kullanıcıya mesaj gönderemezsiniz',
+        'You cannot send messages to this user',
         ErrorCodes.USER_BLOCKED
       );
     }
@@ -137,7 +137,7 @@ class MessageService {
       const application = conversation.application;
       if (!application || application.status !== 'accepted') {
         throw new BadRequestError(
-          'Bu kullanıcı mesaj almayı kapatmış',
+          'This user has disabled messages',
           ErrorCodes.MESSAGE_NOT_ALLOWED
         );
       }
@@ -242,12 +242,12 @@ class MessageService {
     });
 
     if (!message) {
-      throw new NotFoundError('Mesaj bulunamadı', ErrorCodes.MESSAGE_NOT_FOUND);
+      throw new NotFoundError('Message not found', ErrorCodes.MESSAGE_NOT_FOUND);
     }
 
     if (message.conversationId !== conversationId) {
       throw new BadRequestError(
-        'Mesaj bu konuşmaya ait değil',
+        'Message does not belong to this conversation',
         ErrorCodes.VALIDATION_FAILED
       );
     }
@@ -255,7 +255,7 @@ class MessageService {
     // Only sender can delete their own message
     if (message.senderId !== userId) {
       throw new ForbiddenError(
-        'Sadece kendi mesajınızı silebilirsiniz',
+        'You can only delete your own messages',
         ErrorCodes.FORBIDDEN
       );
     }

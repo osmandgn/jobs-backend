@@ -409,8 +409,8 @@ export class EmailService {
             <h4 style="margin: 0 0 8px 0;">${job.title}</h4>
             <p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">${job.description}</p>
             <p style="margin: 0; font-size: 14px;">
-              <strong>Konum:</strong> ${job.locationCity || 'Belirtilmemiş'} |
-              <strong>Ücret:</strong> £${job.payAmount}/${job.payType}
+              <strong>Location:</strong> ${job.locationCity || 'Not specified'} |
+              <strong>Pay:</strong> £${job.payAmount}/${job.payType}
             </p>
           </div>
         `;
@@ -434,20 +434,20 @@ export class EmailService {
         <div class="container">
           <div class="header">
             <h1>GigHub UK</h1>
-            <p>Günlük İş Özeti</p>
+            <p>Daily Job Digest</p>
           </div>
           <div class="content">
-            <p>Merhaba ${firstName},</p>
-            <p>Son 24 saatte size uygun <strong>${totalJobs} yeni iş ilanı</strong> bulundu:</p>
+            <p>Hi ${firstName},</p>
+            <p>We found <strong>${totalJobs} new jobs</strong> matching your preferences in the last 24 hours:</p>
             ${jobsHtml}
             <p style="margin-top: 20px;">
               <a href="https://gighub.uk/jobs" style="background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                Tüm İlanları Gör
+                View All Jobs
               </a>
             </p>
           </div>
           <div class="footer">
-            <p>Bu e-postayı almak istemiyorsanız, bildirim tercihlerinizi güncelleyebilirsiniz.</p>
+            <p>If you no longer wish to receive these emails, you can update your notification preferences.</p>
             <p>© ${new Date().getFullYear()} GigHub UK. All rights reserved.</p>
           </div>
         </div>
@@ -457,9 +457,9 @@ export class EmailService {
 
     const result = await this.send({
       to,
-      subject: `${totalJobs} yeni iş ilanı - GigHub UK Günlük Özet`,
+      subject: `${totalJobs} new jobs - GigHub UK Daily Digest`,
       html,
-      text: `Merhaba ${firstName}, Son 24 saatte ${totalJobs} yeni iş ilanı bulundu.`,
+      text: `Hi ${firstName}, We found ${totalJobs} new jobs in the last 24 hours.`,
     });
 
     return result.success;
@@ -488,14 +488,14 @@ export class EmailService {
             <h4 style="margin: 0 0 8px 0;">${job.title}</h4>
             <p style="margin: 0 0 8px 0; color: #666; font-size: 14px;">${job.description}</p>
             <p style="margin: 0; font-size: 14px;">
-              <strong>Konum:</strong> ${job.locationCity || 'Belirtilmemiş'} |
-              <strong>Ücret:</strong> £${job.payAmount}/${job.payType}
+              <strong>Location:</strong> ${job.locationCity || 'Not specified'} |
+              <strong>Pay:</strong> £${job.payAmount}/${job.payType}
             </p>
           </div>
         `;
       }
       if (jobs.length > 5) {
-        jobsHtml += `<p style="color: #666; font-size: 14px;">... ve ${jobs.length - 5} iş ilanı daha</p>`;
+        jobsHtml += `<p style="color: #666; font-size: 14px;">... and ${jobs.length - 5} more jobs</p>`;
       }
     }
 
@@ -516,20 +516,20 @@ export class EmailService {
         <div class="container">
           <div class="header">
             <h1>GigHub UK</h1>
-            <p>Haftalık İş Özeti</p>
+            <p>Weekly Job Digest</p>
           </div>
           <div class="content">
-            <p>Merhaba ${firstName},</p>
-            <p>Bu hafta size uygun <strong>${totalJobs} yeni iş ilanı</strong> bulundu:</p>
+            <p>Hi ${firstName},</p>
+            <p>We found <strong>${totalJobs} new jobs</strong> matching your preferences this week:</p>
             ${jobsHtml}
             <p style="margin-top: 20px;">
               <a href="https://gighub.uk/jobs" style="background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                Tüm İlanları Gör
+                View All Jobs
               </a>
             </p>
           </div>
           <div class="footer">
-            <p>Bu e-postayı almak istemiyorsanız, bildirim tercihlerinizi güncelleyebilirsiniz.</p>
+            <p>If you no longer wish to receive these emails, you can update your notification preferences.</p>
             <p>© ${new Date().getFullYear()} GigHub UK. All rights reserved.</p>
           </div>
         </div>
@@ -539,9 +539,9 @@ export class EmailService {
 
     const result = await this.send({
       to,
-      subject: `${totalJobs} yeni iş ilanı - GigHub UK Haftalık Özet`,
+      subject: `${totalJobs} new jobs - GigHub UK Weekly Digest`,
       html,
-      text: `Merhaba ${firstName}, Bu hafta ${totalJobs} yeni iş ilanı bulundu.`,
+      text: `Hi ${firstName}, We found ${totalJobs} new jobs this week.`,
     });
 
     return result.success;

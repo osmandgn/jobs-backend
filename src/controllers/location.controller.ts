@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 // Validation schemas
 const postcodeParamSchema = z.object({
-  postcode: z.string().min(2, 'Postcode en az 2 karakter olmalıdır'),
+  postcode: z.string().min(2, 'Postcode must be at least 2 characters'),
 });
 
 const searchQuerySchema = z.object({

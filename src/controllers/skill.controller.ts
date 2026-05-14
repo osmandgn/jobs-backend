@@ -21,20 +21,20 @@ class SkillController {
       if (categoryId && typeof categoryId === 'string') {
         // Get skills for specific category
         const skills = await skillService.getSkillsByCategory(categoryId);
-        sendSuccess(res, skills, 'Beceriler başarıyla getirildi');
+        sendSuccess(res, skills, 'Skills retrieved successfully');
         return;
       }
 
       if (grouped === 'true') {
         // Get all skills grouped by category
         const groupedSkills = await skillService.getSkillsGroupedByCategory();
-        sendSuccess(res, groupedSkills, 'Beceriler başarıyla getirildi');
+        sendSuccess(res, groupedSkills, 'Skills retrieved successfully');
         return;
       }
 
       // Get all skills flat list
       const skills = await skillService.getAllSkills();
-      sendSuccess(res, skills, 'Beceriler başarıyla getirildi');
+      sendSuccess(res, skills, 'Skills retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -48,15 +48,15 @@ class SkillController {
     try {
       const { id } = req.params;
       if (!id) {
-        throw new BadRequestError('Beceri ID gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Skill ID is required', ErrorCodes.VALIDATION_FAILED);
       }
       const skill = await skillService.getSkillById(id);
 
       if (!skill) {
-        throw new NotFoundError('Beceri bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Skill not found', ErrorCodes.NOT_FOUND);
       }
 
-      sendSuccess(res, skill, 'Beceri başarıyla getirildi');
+      sendSuccess(res, skill, 'Skill retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -70,15 +70,15 @@ class SkillController {
     try {
       const { slug } = req.params;
       if (!slug) {
-        throw new BadRequestError('Beceri slug gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Skill slug is required', ErrorCodes.VALIDATION_FAILED);
       }
       const skill = await skillService.getSkillBySlug(slug);
 
       if (!skill) {
-        throw new NotFoundError('Beceri bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Skill not found', ErrorCodes.NOT_FOUND);
       }
 
-      sendSuccess(res, skill, 'Beceri başarıyla getirildi');
+      sendSuccess(res, skill, 'Skill retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -93,7 +93,7 @@ class SkillController {
   async getAllSkillsAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const skills = await skillService.getAllSkillsAdmin();
-      sendSuccess(res, skills, 'Beceriler başarıyla getirildi');
+      sendSuccess(res, skills, 'Skills retrieved successfully');
     } catch (error) {
       next(error);
     }
@@ -115,7 +115,7 @@ class SkillController {
       }
 
       const skill = await skillService.createSkill(validation.data);
-      sendSuccess(res, skill, 'Beceri başarıyla oluşturuldu', 201);
+      sendSuccess(res, skill, 'Skill created successfully', 201);
     } catch (error) {
       next(error);
     }
@@ -129,7 +129,7 @@ class SkillController {
     try {
       const { id } = req.params;
       if (!id) {
-        throw new BadRequestError('Beceri ID gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Skill ID is required', ErrorCodes.VALIDATION_FAILED);
       }
 
       const validation = updateSkillSchema.safeParse(req.body);
@@ -142,7 +142,7 @@ class SkillController {
       }
 
       const skill = await skillService.updateSkill(id, validation.data);
-      sendSuccess(res, skill, 'Beceri başarıyla güncellendi');
+      sendSuccess(res, skill, 'Skill updated successfully');
     } catch (error) {
       next(error);
     }
@@ -156,10 +156,10 @@ class SkillController {
     try {
       const { id } = req.params;
       if (!id) {
-        throw new BadRequestError('Beceri ID gereklidir', ErrorCodes.VALIDATION_FAILED);
+        throw new BadRequestError('Skill ID is required', ErrorCodes.VALIDATION_FAILED);
       }
       await skillService.deleteSkill(id);
-      sendSuccess(res, null, 'Beceri başarıyla silindi');
+      sendSuccess(res, null, 'Skill deleted successfully');
     } catch (error) {
       next(error);
     }
@@ -185,7 +185,7 @@ class SkillController {
         validation.data.skillNames
       );
 
-      sendSuccess(res, result, `${result.created} beceri başarıyla oluşturuldu`, 201);
+      sendSuccess(res, result, `${result.created} skills created successfully`, 201);
     } catch (error) {
       next(error);
     }
@@ -211,7 +211,7 @@ class SkillController {
         validation.data.targetCategoryId
       );
 
-      sendSuccess(res, { movedCount: count }, `${count} beceri başarıyla taşındı`);
+      sendSuccess(res, { movedCount: count }, `${count} skills moved successfully`);
     } catch (error) {
       next(error);
     }

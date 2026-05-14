@@ -4,63 +4,63 @@ import { z } from 'zod';
 export const createSkillSchema = z.object({
   name: z
     .string()
-    .min(2, 'Beceri adı en az 2 karakter olmalıdır')
-    .max(100, 'Beceri adı en fazla 100 karakter olabilir'),
+    .min(2, 'Skill name must be at least 2 characters')
+    .max(100, 'Skill name must be at most 100 characters'),
   slug: z
     .string()
-    .min(2, 'Slug en az 2 karakter olmalıdır')
-    .max(100, 'Slug en fazla 100 karakter olabilir')
-    .regex(/^[a-z0-9-]+$/, 'Slug sadece küçük harf, rakam ve tire içerebilir')
+    .min(2, 'Slug must be at least 2 characters')
+    .max(100, 'Slug must be at most 100 characters')
+    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens')
     .optional(),
-  categoryId: z.string().uuid('Geçersiz kategori ID'),
+  categoryId: z.string().uuid('Invalid category ID'),
 });
 
 // Update skill schema (Admin)
 export const updateSkillSchema = z.object({
   name: z
     .string()
-    .min(2, 'Beceri adı en az 2 karakter olmalıdır')
-    .max(100, 'Beceri adı en fazla 100 karakter olabilir')
+    .min(2, 'Skill name must be at least 2 characters')
+    .max(100, 'Skill name must be at most 100 characters')
     .optional(),
   slug: z
     .string()
-    .min(2, 'Slug en az 2 karakter olmalıdır')
-    .max(100, 'Slug en fazla 100 karakter olabilir')
-    .regex(/^[a-z0-9-]+$/, 'Slug sadece küçük harf, rakam ve tire içerebilir')
+    .min(2, 'Slug must be at least 2 characters')
+    .max(100, 'Slug must be at most 100 characters')
+    .regex(/^[a-z0-9-]+$/, 'Slug can only contain lowercase letters, numbers, and hyphens')
     .optional(),
-  categoryId: z.string().uuid('Geçersiz kategori ID').optional(),
+  categoryId: z.string().uuid('Invalid category ID').optional(),
 });
 
 // Bulk create skills schema (Admin)
 export const bulkCreateSkillsSchema = z.object({
-  categoryId: z.string().uuid('Geçersiz kategori ID'),
+  categoryId: z.string().uuid('Invalid category ID'),
   skillNames: z
     .array(
       z
         .string()
-        .min(2, 'Beceri adı en az 2 karakter olmalıdır')
-        .max(100, 'Beceri adı en fazla 100 karakter olabilir')
+        .min(2, 'Skill name must be at least 2 characters')
+        .max(100, 'Skill name must be at most 100 characters')
     )
-    .min(1, 'En az bir beceri adı gereklidir')
-    .max(50, 'Bir seferde en fazla 50 beceri eklenebilir'),
+    .min(1, 'At least one skill name is required')
+    .max(50, 'A maximum of 50 skills can be added at once'),
 });
 
 // Move skills schema (Admin)
 export const moveSkillsSchema = z.object({
   skillIds: z
-    .array(z.string().uuid('Geçersiz beceri ID'))
-    .min(1, 'En az bir beceri ID gereklidir'),
-  targetCategoryId: z.string().uuid('Geçersiz hedef kategori ID'),
+    .array(z.string().uuid('Invalid skill ID'))
+    .min(1, 'At least one skill ID is required'),
+  targetCategoryId: z.string().uuid('Invalid target category ID'),
 });
 
 // Skill ID parameter
 export const skillIdSchema = z.object({
-  id: z.string().uuid('Geçersiz beceri ID'),
+  id: z.string().uuid('Invalid skill ID'),
 });
 
 // Category ID query parameter
 export const skillsByCategoryQuerySchema = z.object({
-  categoryId: z.string().uuid('Geçersiz kategori ID').optional(),
+  categoryId: z.string().uuid('Invalid category ID').optional(),
 });
 
 // Types

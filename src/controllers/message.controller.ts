@@ -20,7 +20,7 @@ class MessageController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const query = getConversationsQuerySchema.parse(req.query);
@@ -44,7 +44,7 @@ class MessageController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = conversationIdSchema.parse(req.params);
@@ -64,7 +64,7 @@ class MessageController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = conversationIdSchema.parse(req.params);
@@ -90,7 +90,7 @@ class MessageController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = conversationIdSchema.parse(req.params);
@@ -98,7 +98,7 @@ class MessageController {
 
       const message = await messageService.sendMessage(id, userId, data);
 
-      sendSuccess(res, message, 'Mesaj gönderildi');
+      sendSuccess(res, message, 'Message sent');
     } catch (error) {
       next(error);
     }
@@ -112,13 +112,13 @@ class MessageController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = conversationIdSchema.parse(req.params);
       const result = await messageService.markConversationAsRead(id, userId);
 
-      sendSuccess(res, result, 'Mesajlar okundu olarak işaretlendi');
+      sendSuccess(res, result, 'Messages marked as read');
     } catch (error) {
       next(error);
     }
@@ -132,7 +132,7 @@ class MessageController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = conversationIdSchema.parse(req.params);
@@ -152,7 +152,7 @@ class MessageController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = conversationIdSchema.parse(req.params);
@@ -174,7 +174,7 @@ class MessageController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const count = await conversationService.getTotalUnreadCount(userId);

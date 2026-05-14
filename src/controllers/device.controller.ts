@@ -15,7 +15,7 @@ class DeviceController {
       const validationResult = registerDeviceSchema.safeParse(req.body);
 
       if (!validationResult.success) {
-        throw new ValidationError('Geçersiz cihaz verisi', ErrorCodes.VALIDATION_FAILED, {
+        throw new ValidationError('Invalid device data', ErrorCodes.VALIDATION_FAILED, {
           errors: validationResult.error.flatten().fieldErrors,
         });
       }
@@ -29,7 +29,7 @@ class DeviceController {
         deviceName,
       });
 
-      sendCreated(res, { message: 'Cihaz başarıyla kaydedildi' });
+      sendCreated(res, { message: 'Device registered successfully' });
     } catch (error) {
       next(error);
     }
@@ -43,7 +43,7 @@ class DeviceController {
       const validationResult = removeDeviceSchema.safeParse(req.body);
 
       if (!validationResult.success) {
-        throw new ValidationError('Geçersiz token verisi', ErrorCodes.VALIDATION_FAILED, {
+        throw new ValidationError('Invalid token data', ErrorCodes.VALIDATION_FAILED, {
           errors: validationResult.error.flatten().fieldErrors,
         });
       }
@@ -81,7 +81,7 @@ class DeviceController {
       const validationResult = updateTokenSchema.safeParse(req.body);
 
       if (!validationResult.success) {
-        throw new ValidationError('Geçersiz token verisi', ErrorCodes.VALIDATION_FAILED, {
+        throw new ValidationError('Invalid token data', ErrorCodes.VALIDATION_FAILED, {
           errors: validationResult.error.flatten().fieldErrors,
         });
       }
@@ -91,10 +91,10 @@ class DeviceController {
       const updated = await deviceService.updateDeviceToken({ oldToken, newToken });
 
       if (!updated) {
-        throw new BadRequestError('Cihaz bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new BadRequestError('Device not found', ErrorCodes.NOT_FOUND);
       }
 
-      sendSuccess(res, { message: 'Token başarıyla güncellendi' });
+      sendSuccess(res, { message: 'Token updated successfully' });
     } catch (error) {
       next(error);
     }

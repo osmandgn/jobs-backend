@@ -19,7 +19,7 @@ class ReviewController {
     try {
       const validationResult = createReviewSchema.safeParse(req.body);
       if (!validationResult.success) {
-        throw new ValidationError('Geçersiz değerlendirme verisi', 'VALIDATION_ERROR', {
+        throw new ValidationError('Invalid review data', 'VALIDATION_ERROR', {
           errors: validationResult.error.flatten().fieldErrors,
         });
       }
@@ -27,7 +27,7 @@ class ReviewController {
       const userId = req.user!.userId;
       const review = await reviewService.createReview(userId, validationResult.data);
 
-      sendCreated(res, review, 'Değerlendirme başarıyla oluşturuldu');
+      sendCreated(res, review, 'Review created successfully');
     } catch (error) {
       next(error);
     }
@@ -41,12 +41,12 @@ class ReviewController {
     try {
       const paramResult = userIdParamSchema.safeParse(req.params);
       if (!paramResult.success) {
-        throw new ValidationError('Geçersiz kullanıcı ID', 'VALIDATION_ERROR');
+        throw new ValidationError('Invalid user ID', 'VALIDATION_ERROR');
       }
 
       const queryResult = getReviewsQuerySchema.safeParse(req.query);
       if (!queryResult.success) {
-        throw new ValidationError('Geçersiz sorgu parametreleri', 'VALIDATION_ERROR', {
+        throw new ValidationError('Invalid query parameters', 'VALIDATION_ERROR', {
           errors: queryResult.error.flatten().fieldErrors,
         });
       }
@@ -70,7 +70,7 @@ class ReviewController {
     try {
       const paramResult = userIdParamSchema.safeParse(req.params);
       if (!paramResult.success) {
-        throw new ValidationError('Geçersiz kullanıcı ID', 'VALIDATION_ERROR');
+        throw new ValidationError('Invalid user ID', 'VALIDATION_ERROR');
       }
 
       const stats = await reviewService.getUserReviewStats(paramResult.data.id);
@@ -104,12 +104,12 @@ class ReviewController {
     try {
       const paramResult = reviewIdParamSchema.safeParse(req.params);
       if (!paramResult.success) {
-        throw new ValidationError('Geçersiz değerlendirme ID', 'VALIDATION_ERROR');
+        throw new ValidationError('Invalid review ID', 'VALIDATION_ERROR');
       }
 
       const bodyResult = reportReviewSchema.safeParse(req.body);
       if (!bodyResult.success) {
-        throw new ValidationError('Geçersiz rapor verisi', 'VALIDATION_ERROR', {
+        throw new ValidationError('Invalid report data', 'VALIDATION_ERROR', {
           errors: bodyResult.error.flatten().fieldErrors,
         });
       }
@@ -117,7 +117,7 @@ class ReviewController {
       const userId = req.user!.userId;
       await reviewService.reportReview(userId, paramResult.data.id, bodyResult.data.reason);
 
-      sendSuccess(res, null, 'Değerlendirme raporlandı');
+      sendSuccess(res, null, 'Review reported');
     } catch (error) {
       next(error);
     }
@@ -131,13 +131,13 @@ class ReviewController {
     try {
       const paramResult = reviewIdParamSchema.safeParse(req.params);
       if (!paramResult.success) {
-        throw new ValidationError('Geçersiz değerlendirme ID', 'VALIDATION_ERROR');
+        throw new ValidationError('Invalid review ID', 'VALIDATION_ERROR');
       }
 
       const review = await reviewService.getReviewById(paramResult.data.id);
 
       if (!review) {
-        throw new NotFoundError('Değerlendirme bulunamadı', ErrorCodes.NOT_FOUND);
+        throw new NotFoundError('Review not found', ErrorCodes.NOT_FOUND);
       }
 
       sendSuccess(res, review);

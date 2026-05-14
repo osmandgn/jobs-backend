@@ -22,13 +22,13 @@ class JobController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const validatedData = createJobSchema.parse(req.body);
       const job = await jobService.createJob(userId, validatedData);
 
-      sendCreated(res, job, 'İş ilanı başarıyla oluşturuldu');
+      sendCreated(res, job, 'Job created successfully');
     } catch (error) {
       next(error);
     }
@@ -59,7 +59,7 @@ class JobController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = jobIdSchema.parse(req.params);
@@ -67,7 +67,7 @@ class JobController {
 
       const job = await jobService.updateJob(id, userId, validatedData);
 
-      sendSuccess(res, job, 'İş ilanı başarıyla güncellendi');
+      sendSuccess(res, job, 'Job updated successfully');
     } catch (error) {
       next(error);
     }
@@ -81,7 +81,7 @@ class JobController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = jobIdSchema.parse(req.params);
@@ -102,7 +102,7 @@ class JobController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const query = getMyJobsQuerySchema.parse(req.query);
@@ -126,7 +126,7 @@ class JobController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = jobIdSchema.parse(req.params);
@@ -134,7 +134,7 @@ class JobController {
 
       const job = await jobService.updateJobStatus(id, userId, status as JobStatus);
 
-      sendSuccess(res, job, 'İş ilanı durumu güncellendi');
+      sendSuccess(res, job, 'Job status updated');
     } catch (error) {
       next(error);
     }
@@ -148,14 +148,14 @@ class JobController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = jobIdSchema.parse(req.params);
 
       await jobService.saveJob(id, userId);
 
-      sendSuccess(res, { saved: true }, 'İş ilanı kaydedildi');
+      sendSuccess(res, { saved: true }, 'Job saved');
     } catch (error) {
       next(error);
     }
@@ -169,14 +169,14 @@ class JobController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const { id } = jobIdSchema.parse(req.params);
 
       await jobService.unsaveJob(id, userId);
 
-      sendSuccess(res, { saved: false }, 'İş ilanı kaydedilenlerden çıkarıldı');
+      sendSuccess(res, { saved: false }, 'Job removed from saved');
     } catch (error) {
       next(error);
     }
@@ -190,7 +190,7 @@ class JobController {
     try {
       const userId = req.user?.userId;
       if (!userId) {
-        throw new BadRequestError('Kullanıcı bulunamadı', ErrorCodes.AUTH_TOKEN_INVALID);
+        throw new BadRequestError('User not found', ErrorCodes.AUTH_TOKEN_INVALID);
       }
 
       const page = parseInt(req.query.page as string) || 1;
@@ -240,7 +240,7 @@ class JobController {
       // Validate that at least postcode OR (lat & lng) is provided
       if (!query.postcode && (query.lat === undefined || query.lng === undefined)) {
         throw new BadRequestError(
-          'Konum bilgisi gerekli. Postcode veya koordinatlar (lat, lng) belirtin.',
+          'Location required. Please provide a postcode or coordinates (lat, lng).',
           ErrorCodes.VALIDATION_FAILED
         );
       }

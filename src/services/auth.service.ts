@@ -11,6 +11,7 @@ import {
   UnauthorizedError,
   ErrorCodes,
 } from '../utils/AppError';
+import { locationService } from './location.service';
 import logger from '../utils/logger';
 import type { RegisterInput } from '../validators/auth.validator';
 
@@ -42,6 +43,20 @@ export class AuthService {
       }
     }
 
+    // Geocode postcode if provided
+    let locationData: { locationPostcode?: string; locationCity?: string; locationLat?: number; locationLng?: number } = {};
+    if (data.locationPostcode) {
+      const lookup = await locationService.lookupPostcode(data.locationPostcode);
+      locationData = {
+        locationPostcode: data.locationPostcode.toUpperCase(),
+        ...(lookup && {
+          locationLat: lookup.latitude,
+          locationLng: lookup.longitude,
+          ...(lookup.city && { locationCity: lookup.city }),
+        }),
+      };
+    }
+
     // Create user
     const user = await prisma.user.create({
       data: {
@@ -51,6 +66,7 @@ export class AuthService {
         lastName: data.lastName,
         phone: normalizedPhone,
         emailVerified: false,
+        ...locationData,
       },
     });
 
@@ -350,13 +366,22 @@ export class AuthService {
         email: true,
         firstName: true,
         lastName: true,
+        phone: true,
+        bio: true,
         role: true,
         status: true,
         emailVerified: true,
         phoneVerified: true,
         isJobSeeker: true,
         isEmployer: true,
+        isActivelyLooking: true,
         profilePhotoUrl: true,
+        locationCity: true,
+        locationPostcode: true,
+        locationLat: true,
+        locationLng: true,
+        notificationRadiusMiles: true,
+        createdAt: true,
       },
     });
   }
