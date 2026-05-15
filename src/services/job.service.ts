@@ -973,7 +973,10 @@ class JobService {
       userId,
       job: {
         status: 'active',
-        jobDate: { gte: new Date() },
+        OR: [
+          { jobDate: null },
+          { jobDate: { gte: new Date() } },
+        ],
       },
     };
 

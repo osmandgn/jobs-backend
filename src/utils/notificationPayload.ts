@@ -28,80 +28,80 @@ export function buildNotificationPayload(
   switch (type) {
     case 'new_job_match':
       return {
-        title: 'Yeni İş İlanı!',
+        title: 'New Job Match!',
         body: input.jobTitle
-          ? `"${input.jobTitle}" ilanı ilgi alanınıza uygun görünüyor`
-          : 'İlgi alanınıza uygun yeni bir iş ilanı var',
+          ? `"${input.jobTitle}" looks like a great match for you`
+          : 'A new job matching your interests is available',
         data,
       };
 
     case 'application_received':
       return {
-        title: 'Yeni Başvuru!',
+        title: 'New Application!',
         body: input.userName
-          ? `${input.userName} "${input.jobTitle || 'ilanınıza'}" başvurdu`
-          : `"${input.jobTitle || 'İlanınıza'}" yeni bir başvuru geldi`,
+          ? `${input.userName} applied to "${input.jobTitle || 'your job'}"`
+          : `New application received for "${input.jobTitle || 'your job'}"`,
         data,
       };
 
     case 'application_accepted':
       return {
-        title: 'Başvurunuz Kabul Edildi! 🎉',
+        title: 'Application Accepted!',
         body: input.jobTitle
-          ? `"${input.jobTitle}" için başvurunuz kabul edildi`
-          : 'Başvurunuz kabul edildi',
+          ? `Your application for "${input.jobTitle}" has been accepted`
+          : 'Your application has been accepted',
         data,
       };
 
     case 'application_rejected':
       return {
-        title: 'Başvuru Sonucu',
+        title: 'Application Update',
         body: input.jobTitle
-          ? `"${input.jobTitle}" için başvurunuz reddedildi`
-          : 'Başvurunuz reddedildi',
+          ? `Your application for "${input.jobTitle}" was not successful`
+          : 'Your application was not successful',
         data,
       };
 
     case 'new_message':
       return {
-        title: input.userName || 'Yeni Mesaj',
+        title: input.userName || 'New Message',
         body: input.message
           ? input.message.length > 50
             ? `${input.message.substring(0, 50)}...`
             : input.message
-          : 'Yeni bir mesajınız var',
+          : 'You have a new message',
         data,
       };
 
     case 'new_review':
       return {
-        title: 'Yeni Değerlendirme',
+        title: 'New Review',
         body: input.rating
-          ? `${input.userName || 'Biri'} size ${input.rating} yıldız verdi`
-          : `${input.userName || 'Biri'} size değerlendirme bıraktı`,
+          ? `${input.userName || 'Someone'} gave you ${input.rating} stars`
+          : `${input.userName || 'Someone'} left you a review`,
         data,
       };
 
     case 'job_reminder':
       return {
-        title: 'İş Hatırlatması',
+        title: 'Job Reminder',
         body: input.jobTitle
-          ? `"${input.jobTitle}" yarın başlıyor, hazır olun!`
-          : 'Yarın bir işiniz var, hazır olun!',
+          ? `"${input.jobTitle}" starts tomorrow, get ready!`
+          : 'You have a job starting tomorrow, get ready!',
         data,
       };
 
     case 'system':
       return {
         title: 'GigHub UK',
-        body: input.message || 'Yeni bir bildiriminiz var',
+        body: input.message || 'You have a new notification',
         data,
       };
 
     default:
       return {
         title: 'GigHub UK',
-        body: 'Yeni bir bildiriminiz var',
+        body: 'You have a new notification',
         data,
       };
   }
